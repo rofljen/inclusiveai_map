@@ -3,7 +3,7 @@ from database import load_language_data, get_model_types
 from map_utils import display_map
 from components import render_model_filters, render_statistics
 from styles import apply_custom_styles
-from language_info import render_language_info_page
+from language_info import render_language_info_page, render_family_page, render_subfamily_page
 
 def main():
     st.set_page_config(
@@ -25,8 +25,17 @@ def main():
         df = load_language_data()
         model_types = get_model_types()
 
-        # Handle language selection from query params
+        # Handle query parameters for different pages
         params = st.query_params
+
+        if 'family_id' in params:
+            render_family_page(int(params['family_id']))
+            return
+
+        if 'subfamily_id' in params:
+            render_subfamily_page(int(params['subfamily_id']))
+            return
+
         if 'selected_language' in params:
             lang_id = params['selected_language']
             st.session_state.selected_language = int(lang_id)
