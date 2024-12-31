@@ -74,9 +74,9 @@ def load_language_data():
                 COALESCE(lc.connected_languages, '') as connected_languages,
                 COALESCE(lc.connected_coords, ARRAY[]::float[][]) as connected_coords,
                 COALESCE(lc.connected_lang_ids, ARRAY[]::integer[]) as connected_lang_ids,
-                TRUE as has_nmt_pair
+                CASE WHEN lc.lang_id IS NOT NULL THEN TRUE ELSE FALSE END as has_nmt_pair
             FROM language_new l
-            INNER JOIN lang_connections lc ON l.id = lc.lang_id
+            LEFT JOIN lang_connections lc ON l.id = lc.lang_id
             WHERE l.coordinates IS NOT NULL
                 AND ST_IsValid(l.coordinates::geometry)
                 AND ST_X(l.coordinates::geometry) BETWEEN -180 AND 180
