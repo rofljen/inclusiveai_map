@@ -30,7 +30,9 @@ def load_language_data():
             CASE WHEN l.nmt THEN 'NMT' END,
             CASE WHEN l.tts THEN 'TTS' END
         ] as available_models,
-        COALESCE(l.nmt_pairs, 0) as nmt_pair_count
+        (SELECT COUNT(*)
+         FROM nmt_pairs_source nps
+         WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id) as nmt_pair_count
     FROM language_new l
     WHERE l.coordinates IS NOT NULL
         AND ST_X(l.coordinates::geometry) IS NOT NULL 
@@ -54,12 +56,12 @@ def get_language_nmt_pairs(language_id):
     SELECT 
         src.lang_name as source_language,
         tgt.lang_name as target_language,
-        p.num_lines,
-        p."chrf++_score" as chrf_score
-    FROM nmt_pairs p
-    JOIN language_new src ON p.source_lang_id = src.id
-    JOIN language_new tgt ON p.target_lang_id = tgt.id
-    WHERE p.source_lang_id = %(lang_id)s OR p.target_lang_id = %(lang_id)s
-    ORDER BY p."chrf++_score" DESC NULLS LAST
+        NULL as num_lines,
+        nps.chrf_plus as chrf_score
+    FROM nmt_pairs_source nps
+    JOIN language_new src ON nps.source_lang_id = src.id
+    JOIN language_new tgt ON nps.target_lang_id = tgt.id
+    WHERE nps.source_lang_id = %(lang_id)s OR nps.target_lang_id = %(lang_id)s
+    ORDER BY nps.chrf_plus DESC NULLS LAST
     """
     return pd.read_sql(query, engine, params={'lang_id': language_id})
