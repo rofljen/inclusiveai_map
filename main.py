@@ -20,18 +20,18 @@ def main():
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
 
-    # Handle language selection from query params
-    query_params = st.experimental_get_query_params()
-    if 'selected_language' in query_params:
-        st.session_state.selected_language = int(query_params['selected_language'][0])
-        # Clear the query params
-        st.experimental_set_query_params()
-        st.rerun()
-
     try:
         # Load data
         df = load_language_data()
         model_types = get_model_types()
+
+        # Handle language selection from query params
+        params = st.query_params
+        if 'selected_language' in params:
+            lang_id = params['selected_language']
+            st.session_state.selected_language = int(lang_id)
+            # Clear the query param after processing
+            del st.query_params['selected_language']
 
         # If a language is selected, show its info page
         if st.session_state.selected_language is not None:
