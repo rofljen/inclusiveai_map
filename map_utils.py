@@ -22,25 +22,32 @@ def create_model_indicator_html(available_models, selected_models):
     """Create HTML for pie-chart style indicators showing available models."""
     colors = get_model_colors()
 
-    # If no models are selected, show all languages with their available models
+    # Filter out None values from available_models
+    models_present = [m for m in available_models if m]
+
+    # If no models are selected, show all languages
     if not selected_models:
-        models_to_show = [m for m in available_models if m]
-        if not models_to_show:
+        if not models_present:
+            # Gray marker for languages without any models
             return """
             <div style='
                 width: 24px;
                 height: 24px;
-                background-color: #gray;
+                background-color: #808080;
                 border-radius: 50%;
                 opacity: 0.4;
+                border: 2px solid white;
             '></div>
             """
+        # For languages with models, show their model indicators
+        models_to_show = models_present
     else:
-        # If there are selected models, only show markers for languages that have those models
-        models_to_show = [m for m in available_models if m and m in selected_models]
+        # If models are selected, only show languages with those models
+        models_to_show = [m for m in models_present if m in selected_models]
         if not models_to_show:
-            return None
+            return None  # Don't show languages that don't match the filter
 
+    # Single model indicator
     if len(models_to_show) == 1:
         return f"""
         <div style='
@@ -49,10 +56,11 @@ def create_model_indicator_html(available_models, selected_models):
             background-color: {colors[models_to_show[0]]};
             border-radius: 50%;
             opacity: 0.8;
+            border: 2px solid white;
         '></div>
         """
 
-    # For multiple models, create a pie chart style indicator
+    # Multiple models pie chart indicator
     conic_gradient = []
     segment_size = 360 / len(models_to_show)
     current_angle = 0
@@ -111,8 +119,8 @@ def add_language_markers(m, df, selected_models):
         # Create custom icon with filtered models
         icon_html = create_model_indicator_html(row['available_models'], selected_models)
 
-        # Skip adding marker if no models are selected for this language
-        if icon_html is None:
+        # Skip adding marker only if models are selected and this language doesn't match
+        if selected_models and icon_html is None:
             continue
 
         custom_icon = folium.DivIcon(
