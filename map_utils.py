@@ -3,6 +3,7 @@ import streamlit as st
 from streamlit_folium import folium_static
 from folium import plugins
 import pandas as pd
+import numpy as np
 
 def create_base_map():
     """Create the base map centered on the world view."""
@@ -24,10 +25,11 @@ def create_model_indicator_html(available_models, selected_models):
     """Create HTML for pie-chart style indicators showing available models."""
     colors = get_model_colors()
 
-    models_present = [m for m in available_models if m]
+    # Convert available_models to list and filter out None values
+    models_present = [m for m in (available_models or []) if m is not None]
 
     if not selected_models:
-        if not models_present:
+        if len(models_present) == 0:
             return """
             <div style='
                 width: 24px;
@@ -41,7 +43,7 @@ def create_model_indicator_html(available_models, selected_models):
         models_to_show = models_present
     else:
         models_to_show = [m for m in models_present if m in selected_models]
-        if not models_to_show:
+        if len(models_to_show) == 0:
             return None
 
     if len(models_to_show) == 1:
@@ -83,30 +85,30 @@ def add_language_connections(m, df, selected_language_id=None):
         connections = df[
             ((df['source_lang_id'] == selected_language_id) |
              (df['target_lang_id'] == selected_language_id)) &
-            (df['has_nmt_pair'] == True)
+            df['has_nmt_pair']
         ]
     else:
         # Show all connections
-        connections = df[df['has_nmt_pair'] == True]
+        connections = df[df['has_nmt_pair']]
 
     # Create a feature group for connections
     connections_group = folium.FeatureGroup(name="NMT Connections")
 
     # Add lines for each connection
     for _, row in connections.iterrows():
-        if pd.notna(row['connected_lang_coords']):
+        if isinstance(row.get('connected_lang_coords'), (list, np.ndarray)) and len(row['connected_lang_coords']) > 0:
             source_coords = [row['latitude'], row['longitude']]
-            target_coords = row['connected_lang_coords']
-
-            # Create a line with animation
-            line = plugins.AntPath(
-                locations=[source_coords, target_coords],
-                weight=2,
-                color='#4CAF50',
-                opacity=0.6,
-                popup=f"NMT Pair: {row['name']} ↔ {row['connected_lang_name']}"
-            )
-            line.add_to(connections_group)
+            for target_coords in row['connected_lang_coords']:
+                if isinstance(target_coords, (list, np.ndarray)) and len(target_coords) == 2:
+                    # Create a line with animation
+                    line = plugins.AntPath(
+                        locations=[source_coords, target_coords],
+                        weight=2,
+                        color='#4CAF50',
+                        opacity=0.6,
+                        popup=f"NMT Pair: {row['name']} ↔ {row.get('connected_lang_name', 'Unknown')}"
+                    )
+                    line.add_to(connections_group)
 
     connections_group.add_to(m)
 
@@ -115,7 +117,10 @@ def create_popup_content(row):
     colors = get_model_colors()
     model_badges = []
 
-    for model in [m for m in row['available_models'] if m]:
+    # Convert available_models to list and filter out None values
+    available_models = [m for m in (row.get('available_models') or []) if m is not None]
+
+    for model in available_models:
         model_badges.append(
             f'<span style="background-color: {colors[model]}; '
             f'color: white; padding: 2px 8px; border-radius: 10px; '
@@ -123,20 +128,20 @@ def create_popup_content(row):
         )
 
     nmt_info = ''
-    if 'NMT' in row['available_models']:
+    if 'NMT' in available_models:
         nmt_info = f"""
-        <p><strong>NMT Pairs:</strong> {row['nmt_pair_count']} language pairs</p>
+        <p><strong>NMT Pairs:</strong> {row.get('nmt_pair_count', 0)} language pairs</p>
         """
 
     connected_langs = ''
-    if row.get('connected_languages'):
+    if isinstance(row.get('connected_languages'), str) and row['connected_languages'].strip():
         connected_langs = """
         <p><strong>Connected Languages:</strong></p>
         <div style='margin-top: 5px'>
             {}
         </div>
         """.format(
-            '<br>'.join(f"• {lang}" for lang in row['connected_languages'])
+            '<br>'.join(f"• {lang}" for lang in row['connected_languages'].split(', '))
         )
 
     return f"""
@@ -144,7 +149,7 @@ def create_popup_content(row):
         <h4 style="margin-bottom: 8px;">
             {row['name']}
         </h4>
-        <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
+        <p><strong>ISO Code:</strong> {row.get('iso_code') or 'N/A'}</p>
         <p><strong>Available Models:</strong></p>
         <div style='margin-top: 5px'>
             {''.join(model_badges) if model_badges else '<span style="color: #666;">None available</span>'}
@@ -171,10 +176,25 @@ def create_popup_content(row):
     </div>
     """
 
+def display_map(df, selected_models=None, selected_language_id=None):
+    """Create and display the map with language markers and connections."""
+    m = create_base_map()
+
+    # Add the language connections first so they appear under the markers
+    add_language_connections(m, df, selected_language_id)
+
+    # Add the language markers
+    add_language_markers(m, df, selected_models)
+
+    # Add layer controls
+    folium.LayerControl().add_to(m)
+
+    folium_static(m)
+
 def add_language_markers(m, df, selected_models):
     """Add language markers to the map with popup information."""
     for _, row in df.iterrows():
-        icon_html = create_model_indicator_html(row['available_models'], selected_models)
+        icon_html = create_model_indicator_html(row.get('available_models'), selected_models)
 
         if selected_models and icon_html is None:
             continue
@@ -191,18 +211,3 @@ def add_language_markers(m, df, selected_models):
             icon=custom_icon
         )
         marker.add_to(m)
-
-def display_map(df, selected_models=None, selected_language_id=None):
-    """Create and display the map with language markers and connections."""
-    m = create_base_map()
-
-    # Add the language connections first so they appear under the markers
-    add_language_connections(m, df, selected_language_id)
-
-    # Add the language markers
-    add_language_markers(m, df, selected_models)
-
-    # Add layer controls
-    folium.LayerControl().add_to(m)
-
-    folium_static(m)
