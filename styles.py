@@ -41,6 +41,8 @@ def apply_custom_styles():
             margin: 4px auto !important;
             padding: 0 !important;
             min-width: unset !important;
+            background: transparent !important;
+            border: none !important;
         }
 
         /* Style metrics */
