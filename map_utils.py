@@ -10,54 +10,109 @@ def create_base_map():
         tiles='CartoDB positron'
     )
 
-def get_marker_color(available_models):
-    """Determine marker color based on available models."""
-    models = set(model for model in available_models if model)
-    if len(models) == 3:  # All models available
-        return '#8E44AD'  # Purple
-    elif 'ASR' in models and 'NMT' in models:
-        return '#FF4B4B'  # Red
-    elif 'ASR' in models and 'TTS' in models:
-        return '#4CAF50'  # Green
-    elif 'NMT' in models and 'TTS' in models:
-        return '#2196F3'  # Blue
-    elif 'ASR' in models:
-        return '#FF4B4B'  # Red
-    elif 'NMT' in models:
-        return '#4CAF50'  # Green
-    elif 'TTS' in models:
-        return '#2196F3'  # Blue
-    return '#808080'  # Gray for no models
+def get_model_colors():
+    """Get consistent color scheme for models."""
+    return {
+        'ASR': '#FF4B4B',
+        'NMT': '#4CAF50',
+        'TTS': '#2196F3'
+    }
+
+def create_model_indicator_html(available_models):
+    """Create HTML for pie-chart style indicators showing available models."""
+    models = [m for m in available_models if m]
+    colors = get_model_colors()
+
+    if not models:
+        return """
+        <div style='
+            width: 24px;
+            height: 24px;
+            background-color: #808080;
+            border-radius: 50%;
+            opacity: 0.7;
+        '></div>
+        """
+
+    if len(models) == 1:
+        return f"""
+        <div style='
+            width: 24px;
+            height: 24px;
+            background-color: {colors[models[0]]};
+            border-radius: 50%;
+            opacity: 0.8;
+        '></div>
+        """
+
+    # For multiple models, create a pie chart style indicator
+    conic_gradient = []
+    segment_size = 360 / len(models)
+    current_angle = 0
+
+    for model in models:
+        next_angle = current_angle + segment_size
+        conic_gradient.append(f"{colors[model]} {current_angle}deg {next_angle}deg")
+        current_angle = next_angle
+
+    return f"""
+    <div style='
+        width: 24px;
+        height: 24px;
+        background: conic-gradient({", ".join(conic_gradient)});
+        border-radius: 50%;
+        opacity: 0.8;
+        border: 2px solid white;
+    '></div>
+    """
 
 def add_language_markers(m, df, selected_models=None):
     """Add language markers to the map with popup information."""
     for _, row in df.iterrows():
+        # Skip if doesn't match selected model filter
         if selected_models:
             available_models = set(row['available_models']) - {None}
             if not any(model in available_models for model in selected_models):
                 continue
 
+        # Create popup content
+        models = [m for m in row['available_models'] if m]
+        model_badges = []
+        colors = get_model_colors()
+
+        for model in models:
+            model_badges.append(
+                f'<span style="background-color: {colors[model]}; '
+                f'color: white; padding: 2px 8px; border-radius: 10px; '
+                f'margin-right: 5px;">{model}</span>'
+            )
+
         popup_content = f"""
         <div style='width: 200px'>
             <h4>{row['name']}</h4>
-            <p><strong>ISO Code:</strong> {row['iso_code']}</p>
+            <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
             <p><strong>Available Models:</strong></p>
-            <ul>
-                {''.join(f"<li>{model}</li>" for model in row['available_models'] if model)}
-            </ul>
+            <div style='margin-top: 5px'>
+                {''.join(model_badges)}
+            </div>
         </div>
         """
 
-        marker_color = get_marker_color(row['available_models'])
-        folium.CircleMarker(
+        # Create custom icon
+        icon_html = create_model_indicator_html(row['available_models'])
+        custom_icon = folium.DivIcon(
+            html=icon_html,
+            icon_size=(24, 24),
+            icon_anchor=(12, 12)
+        )
+
+        # Add marker to map
+        marker = folium.Marker(
             location=[row['latitude'], row['longitude']],
-            radius=8,
             popup=folium.Popup(popup_content, max_width=300),
-            color=marker_color,
-            fill=True,
-            fill_color=marker_color,
-            fill_opacity=0.7
-        ).add_to(m)
+            icon=custom_icon
+        )
+        marker.add_to(m)
 
 def display_map(df, selected_models=None):
     """Create and display the map with language markers."""
