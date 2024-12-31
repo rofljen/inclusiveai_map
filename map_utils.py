@@ -18,34 +18,28 @@ def get_model_colors():
         'TTS': '#2196F3'
     }
 
-def create_model_indicator_html(available_models, selected_models=None):
+def create_model_indicator_html(available_models, selected_models):
     """Create HTML for pie-chart style indicators showing available models."""
+    if not available_models:
+        return None
+
+    # If there are selected models, only show markers for languages that have those models
+    if selected_models:
+        matching_models = [m for m in available_models if m and m in selected_models]
+        if not matching_models:
+            return None
+    else:
+        # If no models are selected, don't show any markers
+        return None
+
     colors = get_model_colors()
 
-    # If no models are selected or available, return a gray circle
-    if not available_models or (selected_models and not any(m in selected_models for m in available_models if m)):
-        return """
-        <div style='
-            width: 24px;
-            height: 24px;
-            background-color: #e5e7eb;
-            border-radius: 50%;
-            opacity: 0.5;
-        '></div>
-        """
-
-    # Filter models based on selection
-    models = [m for m in available_models if m and (not selected_models or m in selected_models)]
-
-    if not models:
-        return None  # Return None to skip creating the marker
-
-    if len(models) == 1:
+    if len(matching_models) == 1:
         return f"""
         <div style='
             width: 24px;
             height: 24px;
-            background-color: {colors[models[0]]};
+            background-color: {colors[matching_models[0]]};
             border-radius: 50%;
             opacity: 0.8;
         '></div>
@@ -53,10 +47,10 @@ def create_model_indicator_html(available_models, selected_models=None):
 
     # For multiple models, create a pie chart style indicator
     conic_gradient = []
-    segment_size = 360 / len(models)
+    segment_size = 360 / len(matching_models)
     current_angle = 0
 
-    for model in models:
+    for model in matching_models:
         next_angle = current_angle + segment_size
         conic_gradient.append(f"{colors[model]} {current_angle}deg {next_angle}deg")
         current_angle = next_angle
@@ -87,30 +81,24 @@ def create_popup_content(row):
     return f"""
     <div style='width: 200px'>
         <h4 style="margin-bottom: 8px;">
-            <button onclick="
-                window.parent.postMessage({{
-                    type: 'streamlit:componentReady',
-                    data: {{
-                        apiVersion: 1,
-                        componentName: 'streamlit_app',
-                        componentInstance: 'language_detail',
-                        data: {row['id']}
-                    }}
-                }}, '*');
-                return false;
-            " style="color: #1f77b4; text-decoration: none; border: none; background: none; padding: 0; cursor: pointer; font-size: inherit;">
-                {row['name']}
-            </button>
+            {row['name']}
         </h4>
         <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
         <p><strong>Available Models:</strong></p>
         <div style='margin-top: 5px'>
             {''.join(model_badges)}
         </div>
+        <div style='margin-top: 10px'>
+            <button onclick="
+                window.parent.postMessage({{'selected_language': {row['id']}}}, '*');
+            " style="color: #1f77b4; border: none; background: none; padding: 0; cursor: pointer;">
+                View Details
+            </button>
+        </div>
     </div>
     """
 
-def add_language_markers(m, df, selected_models=None):
+def add_language_markers(m, df, selected_models):
     """Add language markers to the map with popup information."""
     for _, row in df.iterrows():
         # Create custom icon with filtered models

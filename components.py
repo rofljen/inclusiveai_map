@@ -5,7 +5,7 @@ def render_model_filters(model_types):
     """Render model type filters in a clean, compact layout."""
     # Initialize session state for selected models if not exists
     if 'selected_models' not in st.session_state:
-        st.session_state.selected_models = set()
+        st.session_state.selected_models = []
 
     model_colors = {
         'ASR': '#FF4B4B',
@@ -31,8 +31,7 @@ def render_model_filters(model_types):
                     if is_selected:
                         st.session_state.selected_models.remove(model_type)
                     else:
-                        st.session_state.selected_models.add(model_type)
-                    st.rerun()
+                        st.session_state.selected_models.append(model_type)
 
             with cols[1]:
                 st.markdown(
@@ -40,7 +39,7 @@ def render_model_filters(model_types):
                     unsafe_allow_html=True
                 )
 
-    return list(st.session_state.selected_models)
+    return st.session_state.selected_models
 
 def render_statistics(df):
     """Render statistics about languages and models."""
