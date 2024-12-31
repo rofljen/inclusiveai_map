@@ -16,10 +16,10 @@ def get_language_details(language_id):
         ST_Y(ST_AsText(coordinates::geometry)) as latitude,
         ST_X(ST_AsText(coordinates::geometry)) as longitude
     FROM language_new ln
-    WHERE ln.id = %s
+    WHERE ln.id = %(lang_id)s
     """
     try:
-        return pd.read_sql_query(query, engine, params=[language_id]).iloc[0]
+        return pd.read_sql_query(query, engine, params={'lang_id': language_id}).iloc[0]
     except Exception as e:
         st.error(f"Error fetching language details: {str(e)}")
         return None
