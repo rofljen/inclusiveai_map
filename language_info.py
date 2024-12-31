@@ -8,9 +8,9 @@ def get_language_details(language_id):
     query = """
     SELECT 
         ln.*,
-        lf.fam_name as family_name,
+        lf.name as family_name,
         lf.id as family_id,
-        ls.sub_name as subfamily_name,
+        ls.name as subfamily_name,
         ls.id as subfamily_id,
         ARRAY[
             CASE WHEN ln.asr THEN 'ASR' END,
