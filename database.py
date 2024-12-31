@@ -38,12 +38,21 @@ def load_language_data():
             SELECT 
                 l1.id as lang_id,
                 string_agg(DISTINCT l2.lang_name, ', ' ORDER BY l2.lang_name) as connected_languages,
-                array_agg(DISTINCT ARRAY[CAST(l2.latitude AS float), CAST(l2.longitude AS float)]) as connected_coords
+                array_agg(DISTINCT ARRAY[
+                    CAST(NULLIF(ST_Y(l2.coordinates::geometry), 'NaN') AS float),
+                    CAST(NULLIF(ST_X(l2.coordinates::geometry), 'NaN') AS float)
+                ]) as connected_coords
             FROM language_new l1
             JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
             JOIN language_new l2 ON 
                 (nps.source_lang_id = l2.id OR nps.target_lang_id = l2.id) AND
                 l2.id != l1.id
+            WHERE 
+                l2.coordinates IS NOT NULL
+                AND ST_X(l2.coordinates::geometry) IS NOT NULL 
+                AND ST_Y(l2.coordinates::geometry) IS NOT NULL
+                AND ST_X(l2.coordinates::geometry) BETWEEN -180 AND 180
+                AND ST_Y(l2.coordinates::geometry) BETWEEN -90 AND 90
             GROUP BY l1.id
         )
         SELECT 
