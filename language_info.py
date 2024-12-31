@@ -8,20 +8,14 @@ def get_language_details(language_id):
     query = """
     SELECT 
         ln.*,
-        lf.name as family_name,
-        lf.id as family_id,
-        ls.name as subfamily_name,
-        ls.id as subfamily_id,
         ARRAY[
             CASE WHEN ln.asr THEN 'ASR' END,
             CASE WHEN ln.nmt THEN 'NMT' END,
             CASE WHEN ln.tts THEN 'TTS' END
         ] as available_models,
-        ST_Y(ST_AsText(ln.geom)) as latitude,
-        ST_X(ST_AsText(ln.geom)) as longitude
-    FROM languages ln
-    LEFT JOIN language_families lf ON ln.family_id = lf.id
-    LEFT JOIN language_subfamilies ls ON ln.subfamily_id = ls.id
+        ST_Y(ST_AsText(coordinates::geometry)) as latitude,
+        ST_X(ST_AsText(coordinates::geometry)) as longitude
+    FROM language_new ln
     WHERE ln.id = %(lang_id)s
     """
     try:
@@ -34,10 +28,10 @@ def get_family_languages(family_id):
     """Fetch all languages belonging to a specific language family."""
     engine = get_database_connection()
     query = """
-    SELECT name, id
-    FROM languages
-    WHERE family_id = %(family_id)s
-    ORDER BY name
+    SELECT lang_name as name, id
+    FROM language_new
+    WHERE lang_fam_id = %(family_id)s
+    ORDER BY lang_name
     """
     return pd.read_sql_query(query, engine, params={'family_id': family_id})
 
@@ -45,10 +39,10 @@ def get_subfamily_languages(subfamily_id):
     """Fetch all languages belonging to a specific language subfamily."""
     engine = get_database_connection()
     query = """
-    SELECT name, id
-    FROM languages
-    WHERE subfamily_id = %(subfamily_id)s
-    ORDER BY name
+    SELECT lang_name as name, id
+    FROM language_new
+    WHERE lang_sub_id = %(subfamily_id)s
+    ORDER BY lang_name
     """
     return pd.read_sql_query(query, engine, params={'subfamily_id': subfamily_id})
 
@@ -61,7 +55,7 @@ def render_language_info_page(language_id):
             return
 
         # Page title and header
-        st.title(f"{details['name']} Language Details")
+        st.title(f"{details['lang_name']} Language Details")
 
         # Layout with columns
         col1, col2 = st.columns([2, 1])
@@ -71,26 +65,8 @@ def render_language_info_page(language_id):
             st.header("Basic Information")
             st.markdown(f"""
             **ISO Code:** {details['iso_code'] if pd.notna(details['iso_code']) else 'N/A'}  
-            **Glottocode:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}  
-            **Number of Speakers:** {f"{details['speakers']:,}" if pd.notna(details['speakers']) else 'N/A'}  
-            **Main City:** {details['main_city'] if pd.notna(details['main_city']) else 'N/A'}  
-            **Continent:** {details['continent'] if pd.notna(details['continent']) else 'N/A'}  
             **Geographic Location:** {f"({details['latitude']:.2f}, {details['longitude']:.2f})" if pd.notna(details['latitude']) else 'N/A'}
             """)
-
-            # Language Family Information
-            st.header("Language Classification")
-            if pd.notna(details['family_name']):
-                st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
-            if pd.notna(details['subfamily_name']):
-                st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
-
-            # Language Resources Section
-            st.header("Language Resources")
-            if pd.notna(details['resources_url']):
-                st.markdown(f"[View Available Resources]({details['resources_url']})")
-            else:
-                st.info("No additional resources available")
 
         with col2:
             # Model Support Section
@@ -101,38 +77,20 @@ def render_language_info_page(language_id):
                 for model in models:
                     if model == 'ASR' and details['asr']:
                         st.subheader("🎙️ Speech Recognition (ASR)")
-                        metrics = []
-                        if pd.notna(details['asr_hours']):
-                            metrics.append(f"Training Hours: {details['asr_hours']}")
-                        if pd.notna(details['asr_speakers']):
-                            metrics.append(f"Unique Speakers: {details['asr_speakers']}")
-                        if metrics:
-                            st.markdown("\n".join(f"- {m}" for m in metrics))
                         if pd.notna(details['asr_url']):
                             st.markdown(f"[Access Model]({details['asr_url']})")
 
                     elif model == 'NMT' and details['nmt']:
                         st.subheader("🔄 Machine Translation (NMT)")
-                        if pd.notna(details['nmt_pairs']):
-                            st.markdown(f"**Translation Pairs:** {details['nmt_pairs']}")
                         if pd.notna(details['nmt_url']):
                             st.markdown(f"[Access Model]({details['nmt_url']})")
 
                     elif model == 'TTS' and details['tts']:
                         st.subheader("🔊 Text-to-Speech (TTS)")
-                        if pd.notna(details['tts_hours']):
-                            st.markdown(f"**Training Hours:** {details['tts_hours']}")
                         if pd.notna(details['tts_url']):
                             st.markdown(f"[Access Model]({details['tts_url']})")
             else:
                 st.warning("No language models currently available")
-
-        # Additional Information Section
-        st.header("Additional Information")
-        if pd.notna(details['description']):
-            st.markdown(details['description'])
-        else:
-            st.info("No additional information available")
 
         # Back button with some spacing
         st.markdown("---")
