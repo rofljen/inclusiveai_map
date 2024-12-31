@@ -26,7 +26,7 @@ def render_sidebar_filters(model_types):
                     st.session_state.selected_models.remove(model_type)
                 else:
                     st.session_state.selected_models.add(model_type)
-                st.experimental_rerun()
+                st.rerun()
 
     # Search box
     search_query = st.sidebar.text_input(
@@ -89,7 +89,7 @@ def render_language_table(df, search_query, selected_models):
             with col1:
                 if st.button(row['name'], key=f"lang_{idx}"):
                     st.session_state.selected_language = row['id']
-                    st.experimental_rerun()
+                    st.rerun()
             with col2:
                 # Show tooltip with available models
                 models = [m for m in row['available_models'] if m]

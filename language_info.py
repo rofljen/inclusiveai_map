@@ -23,9 +23,9 @@ def render_language_info_page(language_id):
     """Render the language information page."""
     try:
         details = get_language_details(language_id)
-        
+
         st.title(f"{details['lang_name']} Language Details")
-        
+
         # Basic Information
         col1, col2 = st.columns(2)
         with col1:
@@ -35,7 +35,7 @@ def render_language_info_page(language_id):
             st.markdown(f"**Family:** {details['family_name'] or 'N/A'}")
             st.markdown(f"**Subfamily:** {details['subfamily_name'] or 'N/A'}")
             st.markdown(f"**Continent:** {details['continent_name'] or 'N/A'}")
-        
+
         with col2:
             st.subheader("Model Availability")
             if details['asr']:
@@ -44,14 +44,14 @@ def render_language_info_page(language_id):
                     st.markdown(f"- Training Hours: {details['asr_hours']}")
                 if details['asr_url']:
                     st.markdown(f"- [Model Link]({details['asr_url']})")
-            
+
             if details['nmt']:
                 st.markdown("✅ **NMT** (Neural Machine Translation)")
                 if details['nmt_url']:
                     st.markdown(f"- [Model Link]({details['nmt_url']})")
                 if details['nmt_pairs']:
                     st.markdown(f"- Translation Pairs: {details['nmt_pairs']}")
-            
+
             if details['tts']:
                 st.markdown("✅ **TTS** (Text-to-Speech)")
                 if details['tts_url']:
@@ -60,10 +60,10 @@ def render_language_info_page(language_id):
         # Back button
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
-            st.experimental_rerun()
+            st.rerun()
 
     except Exception as e:
         st.error(f"Error loading language details: {str(e)}")
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
-            st.experimental_rerun()
+            st.rerun()
