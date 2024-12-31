@@ -6,16 +6,16 @@ import streamlit as st
 def handle_backup_upload():
     """Handle the upload of a PostgreSQL database backup file."""
     st.subheader("Database Backup Upload")
-    
+
     uploaded_file = st.file_uploader("Choose a PostgreSQL backup file", type=['sql', 'dump'])
-    
+
     if uploaded_file is not None:
         try:
             # Create a temporary file to store the upload
             with tempfile.NamedTemporaryFile(delete=False, suffix='.sql') as tmp_file:
                 tmp_file.write(uploaded_file.getvalue())
                 tmp_file_path = tmp_file.name
-            
+
             # Construct the pg_restore command using environment variables
             db_url = os.getenv('DATABASE_URL')
             if not db_url:
@@ -26,11 +26,46 @@ def handle_backup_upload():
                     'password': os.getenv('PGPASSWORD'),
                     'database': os.getenv('PGDATABASE')
                 }
-                
-                # Use psql to restore the backup
+
+                # Add detailed logging
+                st.write("Attempting to restore backup...")
+
+                # Use psql to restore the backup with verbose output
                 env = os.environ.copy()
                 env['PGPASSWORD'] = db_params['password']
-                
+
+                # First, try to check the backup file content
+                st.write("Analyzing backup file contents...")
+                with open(tmp_file_path, 'r') as f:
+                    backup_content = f.read()
+                    st.write(f"Backup file size: {len(backup_content)} bytes")
+
+                    # Count number of INSERT statements for language_new
+                    insert_count = backup_content.lower().count('insert into language_new')
+                    st.write(f"Number of INSERT statements found for language_new: {insert_count}")
+
+                # Check current database state
+                check_command = [
+                    'psql',
+                    '-h', db_params['host'],
+                    '-p', db_params['port'],
+                    '-U', db_params['user'],
+                    '-d', db_params['database'],
+                    '-c', "\\d+ language_new"
+                ]
+
+                check_result = subprocess.run(
+                    check_command,
+                    env=env,
+                    capture_output=True,
+                    text=True
+                )
+
+                st.write("Current table structure:")
+                st.code(check_result.stdout)
+
+                # Now perform the actual restore with verbose output
+                st.write("Starting database restore...")
                 result = subprocess.run(
                     [
                         'psql',
@@ -38,20 +73,47 @@ def handle_backup_upload():
                         '-p', db_params['port'],
                         '-U', db_params['user'],
                         '-d', db_params['database'],
+                        '-v', 'ON_ERROR_STOP=1',
                         '-f', tmp_file_path
                     ],
                     env=env,
                     capture_output=True,
                     text=True
                 )
-                
+
                 if result.returncode == 0:
                     st.success("Database backup restored successfully!")
+                    # Verify the restoration
+                    verify_queries = [
+                        "SELECT COUNT(*) FROM language_new;",
+                        "SELECT COUNT(*) FROM language_family;",
+                        "SELECT COUNT(*) FROM language_subfamily;"
+                    ]
+
+                    st.write("Post-restore database state:")
+                    for query in verify_queries:
+                        verify_result = subprocess.run(
+                            ['psql', 
+                             '-h', db_params['host'],
+                             '-p', db_params['port'],
+                             '-U', db_params['user'],
+                             '-d', db_params['database'],
+                             '-c', query
+                            ],
+                            env=env,
+                            capture_output=True,
+                            text=True
+                        )
+                        st.code(verify_result.stdout)
                 else:
-                    st.error(f"Error restoring backup: {result.stderr}")
-            
+                    st.error("Error restoring backup. Details:")
+                    st.code(result.stderr)
+                    st.write("Command output:")
+                    st.code(result.stdout)
+
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
+            st.write("Full error details:", str(e))
         finally:
             # Clean up the temporary file
             if 'tmp_file_path' in locals():
