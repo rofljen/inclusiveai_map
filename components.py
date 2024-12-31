@@ -15,29 +15,24 @@ def render_model_filters(model_types):
 
     st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
     for model_type in model_types:
-        cols = st.columns([0.15, 0.85])
+        is_selected = model_type in st.session_state.selected_models
 
-        with cols[0]:
-            # Create a button that shows selection state
-            is_selected = model_type in st.session_state.selected_models
+        # Create the model filter row with circle and text
+        filter_html = f"""
+        <div class="model-filter-row" onclick="handleModelClick('{model_type}')">
+            <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};"></div>
+            <span class="model-name">{model_type}</span>
+        </div>
+        """
+        st.markdown(filter_html, unsafe_allow_html=True)
 
-            # Create custom circle div
-            circle_html = f"""
-            <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};">
-            </div>
-            """
-            st.markdown(circle_html, unsafe_allow_html=True)
-
-            # Hidden button for interaction
-            if st.button("", key=f"model_{model_type}", help=f"Toggle {model_type} visibility"):
-                if is_selected:
-                    st.session_state.selected_models.remove(model_type)
-                else:
-                    st.session_state.selected_models.append(model_type)
-                st.rerun()
-
-        with cols[1]:
-            st.markdown(f'<span>{model_type}</span>', unsafe_allow_html=True)
+        # Hidden button for state management
+        if st.button("##", key=f"model_{model_type}", help=f"Toggle {model_type} visibility"):
+            if is_selected:
+                st.session_state.selected_models.remove(model_type)
+            else:
+                st.session_state.selected_models.append(model_type)
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
     return st.session_state.selected_models
@@ -47,29 +42,15 @@ def render_statistics(df):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric(
-            "Total Languages",
-            len(df)
-        )
+        st.metric("Total Languages", len(df))
 
     with col2:
-        total_models = sum(
-            len([x for x in models if x])
-            for models in df['available_models']
-        )
-        st.metric(
-            "Total Model Implementations",
-            total_models
-        )
+        total_models = sum(len([x for x in models if x]) for models in df['available_models'])
+        st.metric("Total Model Implementations", total_models)
 
     with col3:
-        languages_with_models = len(
-            df[df['available_models'].apply(lambda x: any(m for m in x if m))]
-        )
-        st.metric(
-            "Languages with Models",
-            languages_with_models
-        )
+        languages_with_models = len(df[df['available_models'].apply(lambda x: any(m for m in x if m))])
+        st.metric("Languages with Models", languages_with_models)
 
 def render_search_page(df, search_query, selected_models):
     """Render the search and filter page."""

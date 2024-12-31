@@ -22,48 +22,34 @@ def apply_custom_styles():
             margin-top: 0.5rem;
         }
 
+        /* Model filter row */
+        .model-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.25rem 0;
+            cursor: pointer;
+        }
+
         /* Style model circles */
         .model-circle {
-            width: 12px !important;
-            height: 12px !important;
-            border-radius: 50% !important;
-            margin: 4px auto !important;
-            transition: opacity 0.2s ease !important;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
         }
 
-        /* Hide the actual button */
-        [data-testid="baseButton-secondary"] {
-            position: absolute !important;
-            opacity: 0 !important;
-            cursor: pointer !important;
-            width: 12px !important;
-            height: 12px !important;
-            margin: 4px auto !important;
-            padding: 0 !important;
-            min-width: unset !important;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+        /* Model name text */
+        .model-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
         }
 
-        /* Remove extra button styling */
-        [data-testid="baseButton-secondary"] div {
+        /* Hide Streamlit button */
+        button[kind="secondary"] {
             display: none !important;
-        }
-
-        /* Fix column spacing and alignment */
-        [data-testid="column"] {
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
-        }
-
-        /* Make model type text smaller and refined */
-        span {
-            font-size: 0.875rem !important;
-            font-weight: 500 !important;
-            color: #4b5563 !important;
         }
 
         /* Style the Model Types header */
@@ -81,4 +67,12 @@ def apply_custom_styles():
             }
         }
         </style>
+
+        <script>
+        function handleModelClick(modelType) {
+            // Find and click the corresponding hidden button
+            const button = document.querySelector(`button[data-testid="baseButton-model_${modelType}"]`);
+            if (button) button.click();
+        }
+        </script>
     """
