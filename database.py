@@ -39,9 +39,9 @@ def load_language_data():
                 l1.id as lang_id,
                 string_agg(DISTINCT l2.lang_name, ', ' ORDER BY l2.lang_name) as connected_languages,
                 array_agg(DISTINCT ARRAY[
-                    CAST(NULLIF(ST_Y(l2.coordinates::geometry), 'NaN') AS float),
-                    CAST(NULLIF(ST_X(l2.coordinates::geometry), 'NaN') AS float)
-                ]) as connected_coords
+                    ST_Y(l2.coordinates::geometry),
+                    ST_X(l2.coordinates::geometry)
+                ]::float[]) FILTER (WHERE l2.coordinates IS NOT NULL) as connected_coords
             FROM language_new l1
             JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
             JOIN language_new l2 ON 
@@ -49,8 +49,7 @@ def load_language_data():
                 l2.id != l1.id
             WHERE 
                 l2.coordinates IS NOT NULL
-                AND ST_X(l2.coordinates::geometry) IS NOT NULL 
-                AND ST_Y(l2.coordinates::geometry) IS NOT NULL
+                AND ST_IsValid(l2.coordinates::geometry)
                 AND ST_X(l2.coordinates::geometry) BETWEEN -180 AND 180
                 AND ST_Y(l2.coordinates::geometry) BETWEEN -90 AND 90
             GROUP BY l1.id
@@ -59,8 +58,8 @@ def load_language_data():
             l.id,
             l.lang_name as name,
             l.iso_code,
-            NULLIF(ST_Y(l.coordinates::geometry), 'NaN') as latitude,
-            NULLIF(ST_X(l.coordinates::geometry), 'NaN') as longitude,
+            ST_Y(l.coordinates::geometry) as latitude,
+            ST_X(l.coordinates::geometry) as longitude,
             ARRAY[
                 CASE WHEN l.asr THEN 'ASR' END,
                 CASE WHEN l.nmt THEN 'NMT' END,
@@ -79,8 +78,7 @@ def load_language_data():
         FROM language_new l
         LEFT JOIN lang_connections lc ON l.id = lc.lang_id
         WHERE l.coordinates IS NOT NULL
-            AND ST_X(l.coordinates::geometry) IS NOT NULL 
-            AND ST_Y(l.coordinates::geometry) IS NOT NULL
+            AND ST_IsValid(l.coordinates::geometry)
             AND ST_X(l.coordinates::geometry) BETWEEN -180 AND 180
             AND ST_Y(l.coordinates::geometry) BETWEEN -90 AND 90
         ORDER BY l.lang_name
