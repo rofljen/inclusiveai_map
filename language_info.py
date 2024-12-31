@@ -8,6 +8,10 @@ def get_language_details(language_id):
     query = """
     SELECT 
         ln.*,
+        lf.fam_name as family_name,
+        lf.id as family_id,
+        ls.sub_name as subfamily_name,
+        ls.id as subfamily_id,
         ARRAY[
             CASE WHEN ln.asr THEN 'ASR' END,
             CASE WHEN ln.nmt THEN 'NMT' END,
@@ -16,6 +20,8 @@ def get_language_details(language_id):
         ST_Y(ST_AsText(coordinates::geometry)) as latitude,
         ST_X(ST_AsText(coordinates::geometry)) as longitude
     FROM language_new ln
+    LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
+    LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
     WHERE ln.id = %(lang_id)s
     """
     try:
@@ -67,6 +73,13 @@ def render_language_info_page(language_id):
             **ISO Code:** {details['iso_code'] if pd.notna(details['iso_code']) else 'N/A'}  
             **Geographic Location:** {f"({details['latitude']:.2f}, {details['longitude']:.2f})" if pd.notna(details['latitude']) else 'N/A'}
             """)
+
+            # Language Classification Section
+            st.header("Language Classification")
+            if pd.notna(details['family_name']):
+                st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
+            if pd.notna(details['subfamily_name']):
+                st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
 
         with col2:
             # Model Support Section
