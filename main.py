@@ -4,6 +4,7 @@ from map_utils import display_map
 from components import render_model_filters, render_statistics
 from styles import apply_custom_styles
 from language_info import render_language_info_page, render_family_page, render_subfamily_page
+from db_utils import handle_backup_upload
 
 def main():
     st.set_page_config(
@@ -19,6 +20,22 @@ def main():
     # Initialize session state
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
+
+    # Add a menu in the sidebar for admin functions
+    with st.sidebar:
+        st.header("Admin Functions")
+        if st.button("Database Backup Upload"):
+            st.session_state.show_backup = True
+            st.rerun()
+
+    # Show backup upload page if requested
+    if st.session_state.get('show_backup', False):
+        st.title("Database Backup Upload")
+        handle_backup_upload()
+        if st.button("← Back to Map"):
+            st.session_state.show_backup = False
+            st.rerun()
+        return
 
     try:
         # Load data
