@@ -25,35 +25,13 @@ def apply_custom_styles():
         /* Style the model filter buttons */
         [data-testid="baseButton-secondary"] {
             border-radius: 50% !important;
-            width: 16px !important;
-            height: 16px !important;
+            width: 14px !important;
+            height: 14px !important;
             padding: 0 !important;
             min-width: unset !important;
-            border: 2px solid transparent !important;
+            border: none !important;
             transition: all 0.2s ease !important;
-            margin-top: 2px !important;
-        }
-
-        /* Model type specific colors */
-        [data-testid="baseButton-secondary"][key*="model_ASR"] {
-            background-color: #FF4B4B !important;
-            opacity: 0.3;
-        }
-
-        [data-testid="baseButton-secondary"][key*="model_NMT"] {
-            background-color: #4CAF50 !important;
-            opacity: 0.3;
-        }
-
-        [data-testid="baseButton-secondary"][key*="model_TTS"] {
-            background-color: #2196F3 !important;
-            opacity: 0.3;
-        }
-
-        /* Selected state for buttons */
-        [data-testid="baseButton-secondary"][aria-pressed="true"] {
-            opacity: 1 !important;
-            transform: scale(1.1);
+            margin: 4px auto !important;
         }
 
         /* Hide button text */
@@ -73,7 +51,7 @@ def apply_custom_styles():
         }
 
         /* Make model type text smaller and refined */
-        span[style*="color:"] {
+        span {
             font-size: 0.875rem !important;
             font-weight: 500 !important;
             color: #4b5563 !important;

@@ -17,11 +17,16 @@ def render_model_filters(model_types):
     with st.container():
         st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
         for model_type in model_types:
-            is_selected = model_type in st.session_state.selected_models
-
-            # Create a row for each model type
             cols = st.columns([0.15, 0.85])
+
             with cols[0]:
+                # Create a button that shows selection state
+                is_selected = model_type in st.session_state.selected_models
+                button_style = """
+                    background-color: %s !important;
+                    opacity: %s !important;
+                """ % (model_colors[model_type], "1" if is_selected else "0.3")
+
                 if st.button(
                     "",
                     key=f"model_{model_type}",
@@ -33,10 +38,11 @@ def render_model_filters(model_types):
                         st.session_state.selected_models.remove(model_type)
                     else:
                         st.session_state.selected_models.append(model_type)
+                    st.rerun()
 
             with cols[1]:
                 st.markdown(
-                    f'<span style="color: {model_colors[model_type]};">{model_type}</span>',
+                    f'<span>{model_type}</span>',
                     unsafe_allow_html=True
                 )
         st.markdown('</div>', unsafe_allow_html=True)
