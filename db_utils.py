@@ -5,8 +5,6 @@ import streamlit as st
 
 def handle_backup_upload():
     """Handle the upload of a PostgreSQL database backup file."""
-    st.subheader("Database Backup Upload")
-
     uploaded_file = st.file_uploader("Choose a PostgreSQL backup file", type=['sql', 'dump'])
 
     if uploaded_file is not None:
@@ -25,59 +23,19 @@ def handle_backup_upload():
                 backup_content = f.read()
                 st.write(f"Backup file size: {len(backup_content)} bytes")
 
-                # Count number of INSERT statements for language_new
-                insert_count = backup_content.lower().count('copy public.language_new')
-                st.write(f"Number of language entries found: {insert_count}")
-
-            # Construct the pg_restore command using environment variables
-            db_url = os.getenv('DATABASE_URL')
-            if not db_url:
-                db_params = {
-                    'host': os.getenv('PGHOST'),
-                    'port': os.getenv('PGPORT'),
-                    'user': os.getenv('PGUSER'),
-                    'password': os.getenv('PGPASSWORD'),
-                    'database': os.getenv('PGDATABASE')
-                }
-
-            # Check current database state
-            check_command = [
-                'psql',
-                '-h', db_params['host'],
-                '-p', db_params['port'],
-                '-U', db_params['user'],
-                '-d', db_params['database'],
-                '-c', "\\d+ language_new"
-            ]
-
-            check_result = subprocess.run(
-                check_command,
-                env=env,
-                capture_output=True,
-                text=True
-            )
-
-            st.write("Current table structure:")
-            st.code(check_result.stdout)
-
-            # Enable PostGIS extension
-            enable_postgis = subprocess.run(
-                ['psql',
-                 '-h', db_params['host'],
-                 '-p', db_params['port'],
-                 '-U', db_params['user'],
-                 '-d', db_params['database'],
-                 '-c', "CREATE EXTENSION IF NOT EXISTS postgis;"
-                ],
-                env=env,
-                capture_output=True,
-                text=True
-            )
+            # Construct psql command using environment variables
+            env = os.environ.copy()
+            db_params = {
+                'host': os.getenv('PGHOST'),
+                'port': os.getenv('PGPORT'),
+                'user': os.getenv('PGUSER'),
+                'password': os.getenv('PGPASSWORD'),
+                'database': os.getenv('PGDATABASE')
+            }
+            env['PGPASSWORD'] = db_params['password']
 
             # Now perform the actual restore with verbose output
             st.write("Starting database restore...")
-            env = os.environ.copy()
-            env['PGPASSWORD'] = db_params['password']
 
             result = subprocess.run(
                 [
@@ -98,15 +56,16 @@ def handle_backup_upload():
                 st.success("Database backup restored successfully!")
                 # Verify the restoration
                 verify_queries = [
-                    "SELECT COUNT(*) FROM language_new;",
-                    "SELECT COUNT(*) FROM language_family;",
-                    "SELECT COUNT(*) FROM language_subfamily;"
+                    """SELECT COUNT(*) as total_rows, 
+                       COUNT(DISTINCT source_lang_id) as unique_sources,
+                       COUNT(DISTINCT target_lang_id) as unique_targets
+                    FROM nmt_pairs_source;"""
                 ]
 
                 st.write("Post-restore database state:")
                 for query in verify_queries:
                     verify_result = subprocess.run(
-                        ['psql', 
+                        ['psql',
                          '-h', db_params['host'],
                          '-p', db_params['port'],
                          '-U', db_params['user'],
@@ -119,29 +78,6 @@ def handle_backup_upload():
                     )
                     st.code(verify_result.stdout)
 
-                # Show the actual languages that were imported
-                languages_query = """
-                SELECT l.id, l.lang_name, l.iso_code,
-                       f.name as family_name, sf.name as subfamily_name
-                FROM language_new l
-                LEFT JOIN language_family f ON l.lang_fam_id = f.id
-                LEFT JOIN language_subfamily sf ON l.lang_sub_id = sf.id
-                ORDER BY l.id;
-                """
-                languages_result = subprocess.run(
-                    ['psql',
-                     '-h', db_params['host'],
-                     '-p', db_params['port'],
-                     '-U', db_params['user'],
-                     '-d', db_params['database'],
-                     '-c', languages_query
-                    ],
-                    env=env,
-                    capture_output=True,
-                    text=True
-                )
-                st.write("Imported Languages:")
-                st.code(languages_result.stdout)
             else:
                 st.error("Error restoring backup. Details:")
                 st.code(result.stderr)
