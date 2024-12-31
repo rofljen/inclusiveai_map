@@ -93,6 +93,12 @@ def create_popup_content(row):
             f'margin-right: 5px;">{model}</span>'
         )
 
+    nmt_info = ''
+    if 'NMT' in row['available_models']:
+        nmt_info = f"""
+        <p><strong>NMT Pairs:</strong> {row['nmt_pair_count']} language pairs</p>
+        """
+
     return f"""
     <div style='width: 200px'>
         <h4 style="margin-bottom: 8px;">
@@ -103,20 +109,21 @@ def create_popup_content(row):
         <div style='margin-top: 5px'>
             {''.join(model_badges) if model_badges else '<span style="color: #666;">None available</span>'}
         </div>
+        {nmt_info}
         <div style='margin-top: 10px'>
             <a href="?selected_language={row['id']}" 
                target="_blank"
                style="
-                   display: inline-block;
-                   color: white;
-                   background-color: #1f77b4;
-                   border: none;
-                   padding: 4px 12px;
-                   border-radius: 4px;
-                   cursor: pointer;
-                   font-size: 14px;
-                   text-decoration: none;
-               ">
+                    display: inline-block;
+                    color: white;
+                    background-color: #1f77b4;
+                    border: none;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    text-decoration: none;
+                ">
                 View Details
             </a>
         </div>

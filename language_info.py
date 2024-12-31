@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from database import get_database_connection
+from database import get_database_connection, get_language_nmt_pairs
 
 def get_language_details(language_id):
     """Fetch detailed information about a specific language."""
@@ -80,6 +80,20 @@ def render_language_info_page(language_id):
                 st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
             if pd.notna(details['subfamily_name']):
                 st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
+
+            # NMT Pairs Section
+            nmt_pairs = get_language_nmt_pairs(language_id)
+            if not nmt_pairs.empty:
+                st.header("Neural Machine Translation Pairs")
+                st.markdown("This language can be translated to/from:")
+
+                for _, pair in nmt_pairs.iterrows():
+                    quality = "★" * int((pair['chrf_score'] or 0) * 5 / 100)
+                    st.markdown(f"""
+                    - **{pair['source_language']} ↔ {pair['target_language']}**  
+                      Quality: {quality} ({pair['chrf_score']:.1f}%)  
+                      Training Data: {pair['num_lines']:,} lines
+                    """)
 
         with col2:
             # Model Support Section
