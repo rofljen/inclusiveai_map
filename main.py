@@ -32,12 +32,14 @@ def main():
             render_language_info_page(st.session_state.selected_language)
             return
 
-        # Create a container for the floating card
-        with st.container():
-            # Display statistics
-            render_statistics(df)
+        # Create a container for the floating card and map
+        map_container = st.container()
 
-            # Display map
+        # Display statistics above the map
+        render_statistics(df)
+
+        # Display map
+        with map_container:
             display_map(df, st.session_state.get('selected_models', []))
 
             # Create a floating card for model filters
@@ -45,17 +47,19 @@ def main():
                 """
                 <div class="floating-card">
                     <h3>Model Types</h3>
-                    <div id="model-filters"></div>
+                    <div class="model-filters">
+                        <div class="legend-container"></div>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
             # Render model filters in the floating card
-            with st.empty():
-                selected_models = render_model_filters(model_types)
+            selected_models = render_model_filters(model_types)
+            if selected_models != st.session_state.get('selected_models', []):
                 st.session_state['selected_models'] = selected_models
-
+                st.rerun()
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")

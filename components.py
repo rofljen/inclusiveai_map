@@ -22,12 +22,14 @@ def render_model_filters(model_types):
 
         with col1:
             # Create clickable circle with hover effect
-            if st.markdown(f"""
+            st.markdown(f"""
                 <div class="legend-circle {model_class} {'active' if is_selected else ''}"
-                     onclick="window.streamlitPython.rerun();"
-                     data-model="{model_type}">
+                     onclick="parent.postMessage({{action: 'toggleModel', model: '{model_type}'}}, '*')">
                 </div>
-                """, unsafe_allow_html=True):
+                """, unsafe_allow_html=True)
+
+            # Hidden button to handle the click event
+            if st.button(f"Toggle {model_type}", key=f"toggle_{model_type}", label_visibility="hidden"):
                 if is_selected:
                     st.session_state.selected_models.remove(model_type)
                 else:
