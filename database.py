@@ -31,8 +31,6 @@ def load_language_data():
             CASE WHEN tts THEN 'TTS' END
         ] as available_models
     FROM language_new
-    WHERE coordinates IS NOT NULL AND 
-          ST_GeometryType(coordinates::geometry) = 'ST_Point'
     ORDER BY lang_name
     """
     return pd.read_sql(query, engine)
