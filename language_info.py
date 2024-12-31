@@ -3,7 +3,6 @@ import pandas as pd
 from database import get_database_connection, get_language_nmt_pairs, load_language_data
 from map_utils import display_map
 
-
 def get_language_details(language_id):
     """Fetch detailed information about a specific language."""
     engine = get_database_connection()
@@ -32,7 +31,6 @@ def get_language_details(language_id):
         st.error(f"Error fetching language details: {str(e)}")
         return None
 
-
 def get_family_languages(family_id):
     """Fetch all languages belonging to a specific language family."""
     engine = get_database_connection()
@@ -44,7 +42,6 @@ def get_family_languages(family_id):
     """
     return pd.read_sql_query(query, engine, params={'family_id': family_id})
 
-
 def get_subfamily_languages(subfamily_id):
     """Fetch all languages belonging to a specific language subfamily."""
     engine = get_database_connection()
@@ -55,7 +52,6 @@ def get_subfamily_languages(subfamily_id):
     ORDER BY lang_name
     """
     return pd.read_sql_query(query, engine, params={'subfamily_id': subfamily_id})
-
 
 def render_language_info_page(language_id):
     """Render the language information page."""
@@ -151,11 +147,8 @@ def render_language_info_page(language_id):
             # Add a map showing connections
             if not nmt_pairs.empty:
                 st.header("Translation Connections")
-                display_map(
-                    load_language_data(),
-                    selected_models=['NMT'],
-                    selected_language_id=language_id
-                )
+                df = load_language_data()
+                display_map(df, selected_models=['NMT'], selected_language_id=language_id)
 
         # Back button with some spacing
         st.markdown("---")
@@ -168,7 +161,6 @@ def render_language_info_page(language_id):
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
             st.rerun()
-
 
 def render_family_page(family_id):
     """Render the language family page showing all languages in the family."""
@@ -185,7 +177,6 @@ def render_family_page(family_id):
 
     except Exception as e:
         st.error(f"Error loading family details: {str(e)}")
-
 
 def render_subfamily_page(subfamily_id):
     """Render the language subfamily page showing all languages in the subfamily."""
