@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-from database import get_database_connection, get_language_nmt_pairs, load_language_data, display_map
+from database import get_database_connection, get_language_nmt_pairs, load_language_data
+from map_utils import display_map
 
 
 def get_language_details(language_id):
@@ -151,7 +152,7 @@ def render_language_info_page(language_id):
             if not nmt_pairs.empty:
                 st.header("Translation Connections")
                 display_map(
-                    load_language_data(), 
+                    load_language_data(),
                     selected_models=['NMT'],
                     selected_language_id=language_id
                 )
