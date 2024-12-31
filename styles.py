@@ -9,97 +9,61 @@ def apply_custom_styles():
 
         /* Make the main content full width */
         .main .block-container {
-            padding: 0;
+            padding: 2rem;
             max-width: 100%;
         }
 
-        /* Floating card styles */
-        .floating-card {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            min-width: 200px;
-        }
-
-        .floating-card h3 {
-            margin-bottom: 1rem;
-            color: #262730;
-        }
-
-        /* Model filters container */
-        .model-filters {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        /* Remove default Streamlit padding and margins */
-        .floating-card [data-testid="stVerticalBlock"] {
-            gap: 0 !important;
-            padding: 0 !important;
-        }
-
-        /* Style the buttons */
-        .floating-card button {
-            width: 24px !important;
-            height: 24px !important;
-            padding: 0 !important;
+        /* Style the model filter buttons */
+        [data-testid="baseButton-secondary"] {
             border-radius: 50% !important;
-            margin: 0 !important;
+            width: 20px !important;
+            height: 20px !important;
+            padding: 0 !important;
+            min-width: unset !important;
             border: 2px solid transparent !important;
-            transition: all 0.3s ease !important;
-        }
-
-        /* Hide button text */
-        .floating-card button div {
-            display: none !important;
+            transition: all 0.2s ease !important;
         }
 
         /* Model type specific colors */
-        .floating-card button[key*="toggle_ASR"] {
+        [data-testid="baseButton-secondary"][key*="model_ASR"] {
             background-color: #FF4B4B !important;
         }
 
-        .floating-card button[key*="toggle_NMT"] {
+        [data-testid="baseButton-secondary"][key*="model_NMT"] {
             background-color: #4CAF50 !important;
         }
 
-        .floating-card button[key*="toggle_TTS"] {
+        [data-testid="baseButton-secondary"][key*="model_TTS"] {
             background-color: #2196F3 !important;
         }
 
-        /* Selected state */
-        .floating-card button[data-selected="true"] {
+        /* Selected state for buttons */
+        [data-testid="baseButton-secondary"][aria-pressed="true"] {
             border-color: #262730 !important;
-        }
-
-        /* Button hover effects */
-        .floating-card button:hover {
-            opacity: 0.8;
             transform: scale(1.1);
         }
 
-        /* Clean metric display */
+        /* Hide button text */
+        [data-testid="baseButton-secondary"] div {
+            display: none !important;
+        }
+
+        /* Style metrics */
         [data-testid="stMetricValue"] {
             font-size: 1.5rem !important;
+            font-weight: 600 !important;
         }
 
-        /* Adjust column layout */
-        .floating-card [data-testid="stHorizontalBlock"] {
-            gap: 1rem !important;
-            align-items: center !important;
+        [data-testid="stMetricLabel"] {
+            font-size: 0.875rem !important;
+            color: #6b7280 !important;
         }
 
-        /* Style text next to buttons */
-        .floating-card span {
-            color: #262730;
-            font-size: 14px;
-            margin-left: 8px;
+        /* Responsive layout adjustments */
+        @media (max-width: 768px) {
+            .main .block-container {
+                padding: 1rem;
+            }
         }
         </style>
     """

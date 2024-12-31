@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def render_model_filters(model_types):
-    """Render model type filters in a floating card with legend-style display."""
+    """Render model type filters in a clean, compact layout."""
     # Initialize session state for selected models if not exists
     if 'selected_models' not in st.session_state:
         st.session_state.selected_models = set()
@@ -13,25 +13,32 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    # Create legend items as clickable filters
-    for model_type in model_types:
-        is_selected = model_type in st.session_state.selected_models
+    # Create a container for filters
+    with st.container():
+        for model_type in model_types:
+            is_selected = model_type in st.session_state.selected_models
 
-        col1, col2 = st.columns([0.2, 0.8])
+            # Create a row for each model type
+            cols = st.columns([0.15, 0.85])
+            with cols[0]:
+                if st.button(
+                    "",
+                    key=f"model_{model_type}",
+                    help=f"Toggle {model_type} visibility",
+                    type="secondary",
+                    use_container_width=True
+                ):
+                    if is_selected:
+                        st.session_state.selected_models.remove(model_type)
+                    else:
+                        st.session_state.selected_models.add(model_type)
+                    st.rerun()
 
-        with col1:
-            # Create a button styled as a circle
-            if st.button("", key=f"toggle_{model_type}", 
-                        help=f"Toggle {model_type} visibility",
-                        type="secondary"):
-                if is_selected:
-                    st.session_state.selected_models.remove(model_type)
-                else:
-                    st.session_state.selected_models.add(model_type)
-                st.rerun()
-
-        with col2:
-            st.markdown(f'<span style="line-height: 36px;">{model_type}</span>', unsafe_allow_html=True)
+            with cols[1]:
+                st.markdown(
+                    f'<span style="color: {model_colors[model_type]};">{model_type}</span>',
+                    unsafe_allow_html=True
+                )
 
     return list(st.session_state.selected_models)
 

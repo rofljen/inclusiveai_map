@@ -32,32 +32,22 @@ def main():
             render_language_info_page(st.session_state.selected_language)
             return
 
-        # Display statistics above the map
-        render_statistics(df)
-
-        # Create a container for the map
-        map_container = st.container()
+        # Create top container for stats and filters
+        top_container = st.container()
+        with top_container:
+            # Display statistics
+            col1, col2 = st.columns([0.7, 0.3])
+            with col1:
+                render_statistics(df)
+            with col2:
+                st.markdown("### Model Types")
+                selected_models = render_model_filters(model_types)
+                if selected_models != st.session_state.get('selected_models', []):
+                    st.session_state['selected_models'] = selected_models
+                    st.rerun()
 
         # Display map
-        with map_container:
-            display_map(df, st.session_state.get('selected_models', []))
-
-            # Create a floating card for model filters
-            st.markdown(
-                """
-                <div class="floating-card">
-                    <h3>Model Types</h3>
-                    <div class="model-filters"></div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # Render model filters in the floating card
-            selected_models = render_model_filters(model_types)
-            if selected_models != st.session_state.get('selected_models', []):
-                st.session_state['selected_models'] = selected_models
-                st.rerun()
+        display_map(df, st.session_state.get('selected_models', []))
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
