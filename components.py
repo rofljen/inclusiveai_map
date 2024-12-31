@@ -13,8 +13,9 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    # Create a container for filters
+    # Create a container with custom class for styling
     with st.container():
+        st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
         for model_type in model_types:
             is_selected = model_type in st.session_state.selected_models
 
@@ -38,6 +39,7 @@ def render_model_filters(model_types):
                     f'<span style="color: {model_colors[model_type]};">{model_type}</span>',
                     unsafe_allow_html=True
                 )
+        st.markdown('</div>', unsafe_allow_html=True)
 
     return st.session_state.selected_models
 

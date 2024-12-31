@@ -13,33 +13,46 @@ def apply_custom_styles():
             max-width: 100%;
         }
 
+        /* Model filters box container */
+        .model-filters-box {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+
         /* Style the model filter buttons */
         [data-testid="baseButton-secondary"] {
             border-radius: 50% !important;
-            width: 20px !important;
-            height: 20px !important;
+            width: 16px !important;
+            height: 16px !important;
             padding: 0 !important;
             min-width: unset !important;
             border: 2px solid transparent !important;
             transition: all 0.2s ease !important;
+            margin-top: 2px !important;
         }
 
         /* Model type specific colors */
         [data-testid="baseButton-secondary"][key*="model_ASR"] {
             background-color: #FF4B4B !important;
+            opacity: 0.3;
         }
 
         [data-testid="baseButton-secondary"][key*="model_NMT"] {
             background-color: #4CAF50 !important;
+            opacity: 0.3;
         }
 
         [data-testid="baseButton-secondary"][key*="model_TTS"] {
             background-color: #2196F3 !important;
+            opacity: 0.3;
         }
 
         /* Selected state for buttons */
         [data-testid="baseButton-secondary"][aria-pressed="true"] {
-            border-color: #262730 !important;
+            opacity: 1 !important;
             transform: scale(1.1);
         }
 
@@ -70,7 +83,7 @@ def apply_custom_styles():
         h3 {
             font-size: 1rem !important;
             font-weight: 600 !important;
-            margin-bottom: 0.75rem !important;
+            margin-bottom: 0.5rem !important;
             color: #374151 !important;
         }
 
