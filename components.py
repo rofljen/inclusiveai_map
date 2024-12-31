@@ -14,26 +14,19 @@ def render_sidebar_filters(model_types):
 
     # Create a row of buttons for each model type
     cols = st.sidebar.columns(len(model_types))
-    selected_models = set()
 
     for i, model_type in enumerate(model_types):
         with cols[i]:
-            # Create custom button with HTML
-            is_selected = model_type in st.session_state.selected_models
-            button_class = f"model-button model-button-{model_type.lower()}"
-            if is_selected:
-                button_class += " selected"
-
-            button_html = f"""
-            <button class="{button_class}">
-                {model_type}
-            </button>
-            """
-            if st.markdown(button_html, unsafe_allow_html=True):
+            if st.button(
+                model_type,
+                key=f"model_button_{model_type}",
+                type="secondary" if model_type not in st.session_state.selected_models else "primary",
+            ):
                 if model_type in st.session_state.selected_models:
                     st.session_state.selected_models.remove(model_type)
                 else:
                     st.session_state.selected_models.add(model_type)
+                st.experimental_rerun()
 
     # Search box
     search_query = st.sidebar.text_input(
@@ -90,14 +83,19 @@ def render_language_table(df, search_query, selected_models):
         ]
 
     if not filtered_df.empty:
-        st.dataframe(
-            filtered_df[['name', 'iso_code', 'available_models']],
-            hide_index=True,
-            column_config={
-                'name': 'Language',
-                'iso_code': 'ISO Code',
-                'available_models': 'Available Models'
-            }
-        )
+        # Create clickable links for language names
+        for idx, row in filtered_df.iterrows():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                if st.button(row['name'], key=f"lang_{idx}"):
+                    st.session_state.selected_language = row['id']
+                    st.experimental_rerun()
+            with col2:
+                # Show tooltip with available models
+                models = [m for m in row['available_models'] if m]
+                if models:
+                    st.info(f"Available Models: {', '.join(models)}")
+                else:
+                    st.text("No models available")
     else:
         st.info("No languages match the selected filters.")

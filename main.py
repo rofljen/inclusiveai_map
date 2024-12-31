@@ -8,6 +8,7 @@ from components import (
 )
 from styles import apply_custom_styles
 from db_utils import handle_backup_upload
+from language_info import render_language_info_page
 
 def main():
     st.set_page_config(
@@ -19,13 +20,22 @@ def main():
     # Apply custom styles
     st.markdown(apply_custom_styles(), unsafe_allow_html=True)
 
-    # Page title
-    st.title("🌍 Language Model Availability Dashboard")
+    # Initialize session state for selected language
+    if 'selected_language' not in st.session_state:
+        st.session_state.selected_language = None
 
     try:
         # Load data
         df = load_language_data()
         model_types = get_model_types()
+
+        # If a language is selected, show its info page
+        if st.session_state.selected_language is not None:
+            render_language_info_page(st.session_state.selected_language)
+            return
+
+        # Page title
+        st.title("🌍 Language Model Availability Dashboard")
 
         # Render sidebar filters
         selected_models, search_query = render_sidebar_filters(model_types)
