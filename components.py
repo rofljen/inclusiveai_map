@@ -2,13 +2,10 @@ import streamlit as st
 import pandas as pd
 
 def render_model_filters(model_types):
-    """Render model type filters in a floating card."""
+    """Render model type filters in a floating card with legend-style display."""
     # Initialize session state for selected models if not exists
     if 'selected_models' not in st.session_state:
         st.session_state.selected_models = set()
-
-    # Create a row of buttons for each model type
-    cols = st.columns(len(model_types))
 
     model_colors = {
         'ASR': '#FF4B4B',
@@ -16,16 +13,30 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    for i, model_type in enumerate(model_types):
-        with cols[i]:
-            is_selected = model_type in st.session_state.selected_models
-            button_class = 'model-button active' if is_selected else 'model-button'
+    # Create legend items as clickable filters
+    for model_type in model_types:
+        is_selected = model_type in st.session_state.selected_models
+        button_class = 'legend-item active' if is_selected else 'legend-item'
+        model_class = f'model-{model_type.lower()}'
 
+        # Create a container for each legend item
+        col1, col2 = st.columns([0.3, 0.7])
+
+        with col1:
+            # Show model indicator
+            st.markdown(f"""
+                <div class="legend-indicator {model_class}">
+                    <div class="model-dot"></div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
             if st.button(
                 model_type,
                 key=f"model_button_{model_type}",
-                help=f"Show languages with {model_type} models",
+                help=f"Toggle {model_type} models visibility",
                 type="secondary" if not is_selected else "primary",
+                use_container_width=True
             ):
                 if is_selected:
                     st.session_state.selected_models.remove(model_type)
