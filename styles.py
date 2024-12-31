@@ -16,31 +16,45 @@ def apply_custom_styles():
         }
 
         /* Model type button styles */
-        .model-button {
-            display: inline-block;
-            padding: 5px 10px;
-            margin: 5px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 14px;
+        div[data-testid="stHorizontalBlock"] button[kind="primary"] {
+            background-color: var(--model-color);
             border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
             color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
 
-        .model-button-asr {
-            background-color: #FF6B6B;
+        div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
+            background-color: transparent;
+            border: 2px solid var(--model-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: var(--model-color);
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
 
-        .model-button-nmt {
-            background-color: #4ECDC4;
+        /* ASR button */
+        div[data-testid="stHorizontalBlock"] button[key="model_button_ASR"] {
+            --model-color: #FF4B4B;
         }
 
-        .model-button-tts {
-            background-color: #45B7D1;
+        /* NMT button */
+        div[data-testid="stHorizontalBlock"] button[key="model_button_NMT"] {
+            --model-color: #4CAF50;
         }
 
-        .model-button.selected {
-            box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+        /* TTS button */
+        div[data-testid="stHorizontalBlock"] button[key="model_button_TTS"] {
+            --model-color: #2196F3;
+        }
+
+        /* Hover effects */
+        div[data-testid="stHorizontalBlock"] button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         </style>
     """

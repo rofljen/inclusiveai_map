@@ -23,15 +23,16 @@ def load_language_data():
         id,
         lang_name as name,
         iso_code,
-        ST_Y(ST_SetSRID(coordinates::geometry, 4326)) as latitude,
-        ST_X(ST_SetSRID(coordinates::geometry, 4326)) as longitude,
+        ST_Y(ST_AsText(coordinates::geometry)) as latitude,
+        ST_X(ST_AsText(coordinates::geometry)) as longitude,
         ARRAY[
             CASE WHEN asr THEN 'ASR' END,
             CASE WHEN nmt THEN 'NMT' END,
             CASE WHEN tts THEN 'TTS' END
         ] as available_models
     FROM language_new
-    WHERE coordinates IS NOT NULL
+    WHERE coordinates IS NOT NULL AND 
+          ST_GeometryType(coordinates::geometry) = 'ST_Point'
     """
     return pd.read_sql(query, engine)
 
