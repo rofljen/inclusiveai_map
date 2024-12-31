@@ -137,12 +137,31 @@ def create_popup_content(row):
     if isinstance(row.get('connected_languages'), str) and row['connected_languages'].strip():
         connected_langs = """
         <p><strong>Connected Languages:</strong></p>
-        <div style='margin-top: 5px'>
+        <div style='margin-top: 5px; max-height: 100px; overflow-y: auto;'>
             {}
         </div>
         """.format(
             '<br>'.join(f"• {lang}" for lang in row['connected_languages'].split(', '))
         )
+
+    view_details_button = f"""
+        <div style='margin-top: 10px'>
+            <a href="?selected_language={row['id']}" 
+               style="
+                   display: inline-block;
+                   color: white;
+                   background-color: #1f77b4;
+                   border: none;
+                   padding: 4px 12px;
+                   border-radius: 4px;
+                   cursor: pointer;
+                   font-size: 14px;
+                   text-decoration: none;
+               ">
+               View Details
+            </a>
+        </div>
+    """
 
     return f"""
     <div style='width: 250px'>
@@ -156,23 +175,7 @@ def create_popup_content(row):
         </div>
         {nmt_info}
         {connected_langs}
-        <div style='margin-top: 10px'>
-            <a href="?selected_language={row['id']}" 
-               target="_blank"
-               style="
-                    display: inline-block;
-                    color: white;
-                    background-color: #1f77b4;
-                    border: none;
-                    padding: 4px 12px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    text-decoration: none;
-                ">
-                View Details
-            </a>
-        </div>
+        {view_details_button}
     </div>
     """
 
