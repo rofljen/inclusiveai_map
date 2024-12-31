@@ -1,6 +1,40 @@
 import streamlit as st
 import pandas as pd
 
+def render_model_filters(model_types):
+    """Render model type filters in a floating card."""
+    # Initialize session state for selected models if not exists
+    if 'selected_models' not in st.session_state:
+        st.session_state.selected_models = set()
+
+    # Create a row of buttons for each model type
+    cols = st.columns(len(model_types))
+
+    model_colors = {
+        'ASR': '#FF4B4B',
+        'NMT': '#4CAF50',
+        'TTS': '#2196F3'
+    }
+
+    for i, model_type in enumerate(model_types):
+        with cols[i]:
+            is_selected = model_type in st.session_state.selected_models
+            button_class = 'model-button active' if is_selected else 'model-button'
+
+            if st.button(
+                model_type,
+                key=f"model_button_{model_type}",
+                help=f"Show languages with {model_type} models",
+                type="secondary" if not is_selected else "primary",
+            ):
+                if is_selected:
+                    st.session_state.selected_models.remove(model_type)
+                else:
+                    st.session_state.selected_models.add(model_type)
+                st.rerun()
+
+    return list(st.session_state.selected_models)
+
 def render_sidebar_filters(model_types):
     """Render sidebar filters for model types."""
     st.sidebar.markdown("### Model Types")
@@ -54,7 +88,7 @@ def render_statistics(df):
 
     with col2:
         total_models = sum(
-            len([x for x in models if x]) 
+            len([x for x in models if x])
             for models in df['available_models']
         )
         st.metric(

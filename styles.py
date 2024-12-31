@@ -2,21 +2,32 @@ def apply_custom_styles():
     """Apply custom CSS styles to the application."""
     return """
         <style>
-        .stMetric {
-            background-color: #f0f2f6;
-            padding: 10px;
-            border-radius: 5px;
+        /* Hide sidebar by default */
+        [data-testid="stSidebar"] {
+            display: none;
         }
-        .stMetric:hover {
-            background-color: #e0e2e6;
+
+        /* Make the main content full width */
+        .main .block-container {
+            padding: 0;
+            max-width: 100%;
         }
-        .streamlit-expanderHeader {
-            background-color: #f0f2f6;
-            border-radius: 5px;
+
+        /* Floating card styles */
+        .floating-card {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 200px;
         }
 
         /* Model type button styles */
-        div[data-testid="stHorizontalBlock"] button[kind="primary"] {
+        .model-button {
             background-color: var(--model-color);
             border: none;
             padding: 0.5rem 1rem;
@@ -24,37 +35,33 @@ def apply_custom_styles():
             color: white;
             font-weight: bold;
             transition: all 0.3s ease;
+            margin: 0.25rem;
+            cursor: pointer;
         }
 
-        div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
-            background-color: transparent;
-            border: 2px solid var(--model-color);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            color: var(--model-color);
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        /* ASR button */
-        div[data-testid="stHorizontalBlock"] button[key="model_button_ASR"] {
-            --model-color: #FF4B4B;
-        }
-
-        /* NMT button */
-        div[data-testid="stHorizontalBlock"] button[key="model_button_NMT"] {
-            --model-color: #4CAF50;
-        }
-
-        /* TTS button */
-        div[data-testid="stHorizontalBlock"] button[key="model_button_TTS"] {
-            --model-color: #2196F3;
-        }
-
-        /* Hover effects */
-        div[data-testid="stHorizontalBlock"] button:hover {
+        .model-button.active {
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Model colors */
+        .model-asr { --model-color: #FF4B4B; }
+        .model-nmt { --model-color: #4CAF50; }
+        .model-tts { --model-color: #2196F3; }
+
+        /* Make the map container full height */
+        [data-testid="stArrowVegaLiteChart"] {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Style the folium map */
+        .folium-map {
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         </style>
     """

@@ -71,6 +71,39 @@ def create_model_indicator_html(available_models, selected_models=None):
     '></div>
     """
 
+def create_popup_content(row):
+    """Create HTML content for map marker popup."""
+    colors = get_model_colors()
+    model_badges = []
+
+    for model in [m for m in row['available_models'] if m]:
+        model_badges.append(
+            f'<span style="background-color: {colors[model]}; '
+            f'color: white; padding: 2px 8px; border-radius: 10px; '
+            f'margin-right: 5px;">{model}</span>'
+        )
+
+    return f"""
+    <div style='width: 200px'>
+        <h4>
+            <a href="#" onclick="
+                window.parent.postMessage({{
+                    type: 'streamlit:set_state',
+                    data: {{ selected_language: {row['id']} }}
+                }}, '*');
+                return false;
+            " style="color: #1f77b4; text-decoration: none;">
+                {row['name']}
+            </a>
+        </h4>
+        <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
+        <p><strong>Available Models:</strong></p>
+        <div style='margin-top: 5px'>
+            {''.join(model_badges)}
+        </div>
+    </div>
+    """
+
 def add_language_markers(m, df, selected_models=None):
     """Add language markers to the map with popup information."""
     for _, row in df.iterrows():
@@ -80,31 +113,8 @@ def add_language_markers(m, df, selected_models=None):
             if not any(model in available_models for model in selected_models):
                 continue
 
-        # Filter available models based on selection for display
-        display_models = [m for m in row['available_models'] 
-                        if m and (not selected_models or m in selected_models)]
-
-        # Create popup content
-        model_badges = []
-        colors = get_model_colors()
-
-        for model in display_models:
-            model_badges.append(
-                f'<span style="background-color: {colors[model]}; '
-                f'color: white; padding: 2px 8px; border-radius: 10px; '
-                f'margin-right: 5px;">{model}</span>'
-            )
-
-        popup_content = f"""
-        <div style='width: 200px'>
-            <h4>{row['name']}</h4>
-            <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
-            <p><strong>Available Models:</strong></p>
-            <div style='margin-top: 5px'>
-                {''.join(model_badges)}
-            </div>
-        </div>
-        """
+        # Create popup content with clickable language name
+        popup_content = create_popup_content(row)
 
         # Create custom icon with filtered models
         icon_html = create_model_indicator_html(row['available_models'], selected_models)

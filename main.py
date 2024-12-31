@@ -1,12 +1,7 @@
 import streamlit as st
 from database import load_language_data, get_model_types
 from map_utils import display_map
-from components import (
-    render_sidebar_filters,
-    render_statistics,
-    render_language_table,
-    render_search_page
-)
+from components import render_model_filters, render_statistics
 from styles import apply_custom_styles
 from language_info import render_language_info_page
 
@@ -14,13 +9,14 @@ def main():
     st.set_page_config(
         page_title="Language Model Availability Dashboard",
         page_icon="🌍",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="collapsed"
     )
 
     # Apply custom styles
     st.markdown(apply_custom_styles(), unsafe_allow_html=True)
 
-    # Initialize session state for selected language
+    # Initialize session state
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
     if 'current_page' not in st.session_state:
@@ -36,27 +32,30 @@ def main():
             render_language_info_page(st.session_state.selected_language)
             return
 
-        # Navigation
-        st.sidebar.title("Navigation")
-        page = st.sidebar.radio("", ["Map View", "Search & Filter"], 
-                              format_func=lambda x: x)
-
-        # Page title
-        st.title("🌍 Language Model Availability Dashboard")
-
-        # Render model type filters in sidebar
-        selected_models, search_query = render_sidebar_filters(model_types)
-
-        if page == "Map View":
+        # Create a container for the floating card
+        with st.container():
             # Display statistics
             render_statistics(df)
 
             # Display map
-            st.subheader("Geographic Distribution")
-            display_map(df, selected_models)
+            display_map(df, st.session_state.get('selected_models', []))
 
-        else:  # Search & Filter page
-            render_search_page(df, search_query, selected_models)
+            # Create a floating card for model filters
+            st.markdown(
+                """
+                <div class="floating-card">
+                    <h3>Model Types</h3>
+                    <div id="model-filters"></div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            # Render model filters in the floating card
+            with st.empty():
+                selected_models = render_model_filters(model_types)
+                st.session_state['selected_models'] = selected_models
+
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
