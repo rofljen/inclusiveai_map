@@ -13,42 +13,32 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    # Create a container with custom class for styling
-    with st.container():
-        st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
-        for model_type in model_types:
-            cols = st.columns([0.15, 0.85])
+    st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
+    for model_type in model_types:
+        cols = st.columns([0.15, 0.85])
 
-            with cols[0]:
-                # Create a button that shows selection state
-                is_selected = model_type in st.session_state.selected_models
+        with cols[0]:
+            # Create a button that shows selection state
+            is_selected = model_type in st.session_state.selected_models
 
-                # Create custom circle div
-                circle_html = f"""
-                <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};">
-                </div>
-                """
-                st.markdown(circle_html, unsafe_allow_html=True)
+            # Create custom circle div
+            circle_html = f"""
+            <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};">
+            </div>
+            """
+            st.markdown(circle_html, unsafe_allow_html=True)
 
-                if st.button(
-                    "",
-                    key=f"model_{model_type}",
-                    help=f"Toggle {model_type} visibility",
-                    type="secondary",
-                    use_container_width=True
-                ):
-                    if is_selected:
-                        st.session_state.selected_models.remove(model_type)
-                    else:
-                        st.session_state.selected_models.append(model_type)
-                    st.rerun()
+            # Hidden button for interaction
+            if st.button("", key=f"model_{model_type}", help=f"Toggle {model_type} visibility"):
+                if is_selected:
+                    st.session_state.selected_models.remove(model_type)
+                else:
+                    st.session_state.selected_models.append(model_type)
+                st.rerun()
 
-            with cols[1]:
-                st.markdown(
-                    f'<span>{model_type}</span>',
-                    unsafe_allow_html=True
-                )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with cols[1]:
+            st.markdown(f'<span>{model_type}</span>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     return st.session_state.selected_models
 

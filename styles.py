@@ -43,17 +43,20 @@ def apply_custom_styles():
             min-width: unset !important;
             background: transparent !important;
             border: none !important;
+            box-shadow: none !important;
         }
 
-        /* Style metrics */
-        [data-testid="stMetricValue"] {
-            font-size: 1.5rem !important;
-            font-weight: 600 !important;
+        /* Remove extra button styling */
+        [data-testid="baseButton-secondary"] div {
+            display: none !important;
         }
 
-        [data-testid="stMetricLabel"] {
-            font-size: 0.875rem !important;
-            color: #6b7280 !important;
+        /* Fix column spacing and alignment */
+        [data-testid="column"] {
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
         }
 
         /* Make model type text smaller and refined */
