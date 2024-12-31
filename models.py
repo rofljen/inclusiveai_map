@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from geoalchemy2 import Geometry
 
 Base = declarative_base()
 
@@ -23,6 +24,7 @@ class Language(Base):
     iso_code = Column(String(10), nullable=False, unique=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    geom = Column(Geometry('POINT'), nullable=True)
 
     # Relationship to model types through the association table
     model_types = relationship(
