@@ -18,9 +18,14 @@ def get_model_colors():
         'TTS': '#2196F3'
     }
 
-def create_model_indicator_html(available_models):
+def create_model_indicator_html(available_models, selected_models=None):
     """Create HTML for pie-chart style indicators showing available models."""
-    models = [m for m in available_models if m]
+    # Filter models based on selection
+    if selected_models:
+        models = [m for m in available_models if m and m in selected_models]
+    else:
+        models = [m for m in available_models if m]
+
     colors = get_model_colors()
 
     if not models:
@@ -71,16 +76,19 @@ def add_language_markers(m, df, selected_models=None):
     for _, row in df.iterrows():
         # Skip if doesn't match selected model filter
         if selected_models:
-            available_models = set(row['available_models']) - {None}
+            available_models = set(m for m in row['available_models'] if m)
             if not any(model in available_models for model in selected_models):
                 continue
 
+        # Filter available models based on selection for display
+        display_models = [m for m in row['available_models'] 
+                        if m and (not selected_models or m in selected_models)]
+
         # Create popup content
-        models = [m for m in row['available_models'] if m]
         model_badges = []
         colors = get_model_colors()
 
-        for model in models:
+        for model in display_models:
             model_badges.append(
                 f'<span style="background-color: {colors[model]}; '
                 f'color: white; padding: 2px 8px; border-radius: 10px; '
@@ -98,8 +106,8 @@ def add_language_markers(m, df, selected_models=None):
         </div>
         """
 
-        # Create custom icon
-        icon_html = create_model_indicator_html(row['available_models'])
+        # Create custom icon with filtered models
+        icon_html = create_model_indicator_html(row['available_models'], selected_models)
         custom_icon = folium.DivIcon(
             html=icon_html,
             icon_size=(24, 24),
