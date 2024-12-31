@@ -21,62 +21,10 @@ def main():
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
 
-    # Add a menu in the sidebar for admin functions
-    with st.sidebar:
-        st.header("Admin Functions")
-        if st.button("Database Backup Upload"):
-            st.session_state.show_backup = True
-            st.rerun()
-
-    # Show backup upload page if requested
-    if st.session_state.get('show_backup', False):
+    try:
+        # Handle backup upload
         st.title("Database Backup Upload")
         handle_backup_upload()
-        if st.button("← Back to Map"):
-            st.session_state.show_backup = False
-            st.rerun()
-        return
-
-    try:
-        # Load data
-        df = load_language_data()
-        model_types = get_model_types()
-
-        # Handle query parameters for different pages
-        params = st.query_params
-
-        if 'family_id' in params:
-            render_family_page(int(params['family_id']))
-            return
-
-        if 'subfamily_id' in params:
-            render_subfamily_page(int(params['subfamily_id']))
-            return
-
-        if 'selected_language' in params:
-            lang_id = params['selected_language']
-            st.session_state.selected_language = int(lang_id)
-            # Clear the query param after processing
-            del st.query_params['selected_language']
-
-        # If a language is selected, show its info page
-        if st.session_state.selected_language is not None:
-            render_language_info_page(st.session_state.selected_language)
-            return
-
-        # Create top container for stats and filters
-        top_container = st.container()
-        with top_container:
-            # Display statistics
-            col1, col2 = st.columns([0.7, 0.3])
-            with col1:
-                render_statistics(df)
-            with col2:
-                st.markdown("### Model Types")
-                selected_models = render_model_filters(model_types)
-
-        # Display map
-        display_map(df, st.session_state.get('selected_models', []))
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
