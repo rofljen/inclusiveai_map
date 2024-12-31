@@ -20,26 +20,33 @@ def get_model_colors():
 
 def create_model_indicator_html(available_models, selected_models):
     """Create HTML for pie-chart style indicators showing available models."""
-    if not available_models:
-        return None
-
-    # If there are selected models, only show markers for languages that have those models
-    if selected_models:
-        matching_models = [m for m in available_models if m and m in selected_models]
-        if not matching_models:
-            return None
-    else:
-        # If no models are selected, don't show any markers
-        return None
-
     colors = get_model_colors()
 
-    if len(matching_models) == 1:
+    # If no models are selected, show all languages with their available models
+    if not selected_models:
+        models_to_show = [m for m in available_models if m]
+        if not models_to_show:
+            return """
+            <div style='
+                width: 24px;
+                height: 24px;
+                background-color: #gray;
+                border-radius: 50%;
+                opacity: 0.4;
+            '></div>
+            """
+    else:
+        # If there are selected models, only show markers for languages that have those models
+        models_to_show = [m for m in available_models if m and m in selected_models]
+        if not models_to_show:
+            return None
+
+    if len(models_to_show) == 1:
         return f"""
         <div style='
             width: 24px;
             height: 24px;
-            background-color: {colors[matching_models[0]]};
+            background-color: {colors[models_to_show[0]]};
             border-radius: 50%;
             opacity: 0.8;
         '></div>
@@ -47,10 +54,10 @@ def create_model_indicator_html(available_models, selected_models):
 
     # For multiple models, create a pie chart style indicator
     conic_gradient = []
-    segment_size = 360 / len(matching_models)
+    segment_size = 360 / len(models_to_show)
     current_angle = 0
 
-    for model in matching_models:
+    for model in models_to_show:
         next_angle = current_angle + segment_size
         conic_gradient.append(f"{colors[model]} {current_angle}deg {next_angle}deg")
         current_angle = next_angle
