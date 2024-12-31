@@ -19,8 +19,14 @@ def main():
     # Initialize session state
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = 'map'
+
+    # Handle language selection from query params
+    query_params = st.experimental_get_query_params()
+    if 'selected_language' in query_params:
+        st.session_state.selected_language = int(query_params['selected_language'][0])
+        # Clear the query params
+        st.experimental_set_query_params()
+        st.rerun()
 
     try:
         # Load data
@@ -42,9 +48,6 @@ def main():
             with col2:
                 st.markdown("### Model Types")
                 selected_models = render_model_filters(model_types)
-                if selected_models != st.session_state.get('selected_models', []):
-                    st.session_state['selected_models'] = selected_models
-                    st.rerun()
 
         # Display map
         display_map(df, st.session_state.get('selected_models', []))

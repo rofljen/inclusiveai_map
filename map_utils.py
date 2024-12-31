@@ -101,12 +101,20 @@ def create_popup_content(row):
         <p><strong>ISO Code:</strong> {row['iso_code'] or 'N/A'}</p>
         <p><strong>Available Models:</strong></p>
         <div style='margin-top: 5px'>
-            {''.join(model_badges)}
+            {''.join(model_badges) if model_badges else '<span style="color: #666;">None available</span>'}
         </div>
         <div style='margin-top: 10px'>
             <button onclick="
-                window.parent.postMessage({{'selected_language': {row['id']}}}, '*');
-            " style="color: #1f77b4; border: none; background: none; padding: 0; cursor: pointer;">
+                window.parent.location.href = '?selected_language={row['id']}';
+            " style="
+                color: white;
+                background-color: #1f77b4;
+                border: none;
+                padding: 4px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+            ">
                 View Details
             </button>
         </div>
