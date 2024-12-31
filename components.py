@@ -21,13 +21,6 @@ def render_model_filters(model_types):
         col1, col2 = st.columns([0.2, 0.8])
 
         with col1:
-            # Create clickable circle with hover effect
-            st.markdown(f"""
-                <div class="legend-circle {model_class} {'active' if is_selected else ''}"
-                     onclick="parent.postMessage({{action: 'toggleModel', model: '{model_type}'}}, '*')">
-                </div>
-                """, unsafe_allow_html=True)
-
             # Hidden button to handle the click event
             if st.button(f"Toggle {model_type}", key=f"toggle_{model_type}", label_visibility="hidden"):
                 if is_selected:
@@ -37,7 +30,7 @@ def render_model_filters(model_types):
                 st.rerun()
 
         with col2:
-            st.markdown(f"<span class='legend-label'>{model_type}</span>", unsafe_allow_html=True)
+            st.markdown(f'<span class="legend-label">{model_type}</span>', unsafe_allow_html=True)
 
     return list(st.session_state.selected_models)
 

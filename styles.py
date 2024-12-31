@@ -28,25 +28,13 @@ def apply_custom_styles():
 
         /* Legend styles */
         .legend-circle {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             margin: 8px 0;
             cursor: pointer;
             transition: all 0.3s ease;
-            opacity: 0.7;
-            border: 2px solid transparent;
-        }
-
-        .legend-circle:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .legend-circle.active {
-            opacity: 1;
-            border-color: #ffffff;
-            box-shadow: 0 0 0 2px var(--model-color);
+            opacity: 0.8;
         }
 
         .legend-label {
@@ -57,9 +45,9 @@ def apply_custom_styles():
         }
 
         /* Model colors */
-        .model-asr { --model-color: #FF4B4B; background-color: #FF4B4B; }
-        .model-nmt { --model-color: #4CAF50; background-color: #4CAF50; }
-        .model-tts { --model-color: #2196F3; background-color: #2196F3; }
+        .model-asr { background-color: #FF4B4B; }
+        .model-nmt { background-color: #4CAF50; }
+        .model-tts { background-color: #2196F3; }
 
         /* Make the map container full height */
         [data-testid="stArrowVegaLiteChart"] {
@@ -87,9 +75,25 @@ def apply_custom_styles():
             gap: 0.5rem !important;
         }
 
+        /* Style the buttons in the legend */
+        .floating-card [data-testid="baseButton-secondary"] {
+            width: 24px !important;
+            height: 24px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            margin: 8px 0 !important;
+            background-color: var(--model-color) !important;
+            border: none !important;
+        }
+
         /* Clean metric display */
         [data-testid="stMetricValue"] {
             font-size: 1.5rem !important;
+        }
+
+        /* Hide button text */
+        .floating-card [data-testid="baseButton-secondary"] div {
+            display: none !important;
         }
         </style>
     """
