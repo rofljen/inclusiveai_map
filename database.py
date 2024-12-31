@@ -20,24 +20,24 @@ def load_language_data():
     engine = get_database_connection()
     query = """
     SELECT 
-        id,
-        lang_name as name,
-        iso_code,
+        l.id,
+        l.lang_name as name,
+        l.iso_code,
         CASE 
-            WHEN coordinates IS NOT NULL THEN ST_Y(ST_AsText(coordinates::geometry))
+            WHEN l.coordinates IS NOT NULL THEN ST_Y(l.coordinates::geometry)
             ELSE NULL
         END as latitude,
         CASE 
-            WHEN coordinates IS NOT NULL THEN ST_X(ST_AsText(coordinates::geometry))
+            WHEN l.coordinates IS NOT NULL THEN ST_X(l.coordinates::geometry)
             ELSE NULL
         END as longitude,
         ARRAY[
-            CASE WHEN asr THEN 'ASR' END,
-            CASE WHEN nmt THEN 'NMT' END,
-            CASE WHEN tts THEN 'TTS' END
+            CASE WHEN l.asr THEN 'ASR' END,
+            CASE WHEN l.nmt THEN 'NMT' END,
+            CASE WHEN l.tts THEN 'TTS' END
         ] as available_models
-    FROM language_new
-    ORDER BY lang_name
+    FROM language_new l
+    ORDER BY l.lang_name
     """
     return pd.read_sql(query, engine)
 
