@@ -23,8 +23,14 @@ def load_language_data():
         id,
         lang_name as name,
         iso_code,
-        ST_Y(ST_AsText(coordinates::geometry)) as latitude,
-        ST_X(ST_AsText(coordinates::geometry)) as longitude,
+        CASE 
+            WHEN coordinates IS NOT NULL THEN ST_Y(ST_AsText(coordinates::geometry))
+            ELSE NULL
+        END as latitude,
+        CASE 
+            WHEN coordinates IS NOT NULL THEN ST_X(ST_AsText(coordinates::geometry))
+            ELSE NULL
+        END as longitude,
         ARRAY[
             CASE WHEN asr THEN 'ASR' END,
             CASE WHEN nmt THEN 'NMT' END,
