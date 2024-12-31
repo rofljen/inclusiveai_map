@@ -16,76 +16,28 @@ def render_model_filters(model_types):
     # Create legend items as clickable filters
     for model_type in model_types:
         is_selected = model_type in st.session_state.selected_models
-        button_class = 'legend-item active' if is_selected else 'legend-item'
         model_class = f'model-{model_type.lower()}'
 
-        # Create a container for each legend item
-        col1, col2 = st.columns([0.3, 0.7])
+        col1, col2 = st.columns([0.2, 0.8])
 
         with col1:
-            # Show model indicator
-            st.markdown(f"""
-                <div class="legend-indicator {model_class}">
-                    <div class="model-dot"></div>
+            # Create clickable circle with hover effect
+            if st.markdown(f"""
+                <div class="legend-circle {model_class} {'active' if is_selected else ''}"
+                     onclick="window.streamlitPython.rerun();"
+                     data-model="{model_type}">
                 </div>
-            """, unsafe_allow_html=True)
-
-        with col2:
-            if st.button(
-                model_type,
-                key=f"model_button_{model_type}",
-                help=f"Toggle {model_type} models visibility",
-                type="secondary" if not is_selected else "primary",
-                use_container_width=True
-            ):
+                """, unsafe_allow_html=True):
                 if is_selected:
                     st.session_state.selected_models.remove(model_type)
                 else:
                     st.session_state.selected_models.add(model_type)
                 st.rerun()
 
+        with col2:
+            st.markdown(f"<span class='legend-label'>{model_type}</span>", unsafe_allow_html=True)
+
     return list(st.session_state.selected_models)
-
-def render_sidebar_filters(model_types):
-    """Render sidebar filters for model types."""
-    st.sidebar.markdown("### Model Types")
-
-    # Initialize session state for selected models if not exists
-    if 'selected_models' not in st.session_state:
-        st.session_state.selected_models = set()
-
-    # Create a row of buttons for each model type
-    cols = st.sidebar.columns(len(model_types))
-
-    model_colors = {
-        'ASR': '#FF4B4B',
-        'NMT': '#4CAF50',
-        'TTS': '#2196F3'
-    }
-
-    for i, model_type in enumerate(model_types):
-        with cols[i]:
-            button_style = f"""
-                <style>
-                    div[data-testid="stHorizontalBlock"] button[key="model_button_{model_type}"] {{
-                        background-color: {model_colors[model_type]} !important;
-                    }}
-                </style>
-            """
-            st.markdown(button_style, unsafe_allow_html=True)
-
-            if st.button(
-                model_type,
-                key=f"model_button_{model_type}",
-                type="secondary" if model_type not in st.session_state.selected_models else "primary",
-            ):
-                if model_type in st.session_state.selected_models:
-                    st.session_state.selected_models.remove(model_type)
-                else:
-                    st.session_state.selected_models.add(model_type)
-                st.rerun()
-
-    return list(st.session_state.selected_models), ""
 
 def render_statistics(df):
     """Render statistics about languages and models."""

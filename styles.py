@@ -27,39 +27,39 @@ def apply_custom_styles():
         }
 
         /* Legend styles */
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin: 0.5rem 0;
-            padding: 0.25rem;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .legend-item:hover {
-            background: rgba(0,0,0,0.05);
-        }
-
-        .legend-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-        }
-
-        .model-dot {
-            width: 16px;
-            height: 16px;
+        .legend-circle {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background-color: var(--model-color);
-            opacity: 0.8;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+            border: 2px solid transparent;
+        }
+
+        .legend-circle:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .legend-circle.active {
+            opacity: 1;
+            border-color: #ffffff;
+            box-shadow: 0 0 0 2px var(--model-color);
+        }
+
+        .legend-label {
+            font-size: 14px;
+            color: #262730;
+            margin-left: 8px;
+            line-height: 36px;
         }
 
         /* Model colors */
-        .model-asr { --model-color: #FF4B4B; }
-        .model-nmt { --model-color: #4CAF50; }
-        .model-tts { --model-color: #2196F3; }
+        .model-asr { --model-color: #FF4B4B; background-color: #FF4B4B; }
+        .model-nmt { --model-color: #4CAF50; background-color: #4CAF50; }
+        .model-tts { --model-color: #2196F3; background-color: #2196F3; }
 
         /* Make the map container full height */
         [data-testid="stArrowVegaLiteChart"] {
@@ -76,34 +76,20 @@ def apply_custom_styles():
             left: 0;
         }
 
-        /* Style Streamlit buttons in the legend */
-        .floating-card [data-testid="baseButton-secondary"] {
-            background: transparent;
-            border: none;
-            color: #262730;
-            text-align: left;
-            width: 100%;
-            padding: 0.25rem 0.5rem;
-        }
-
-        .floating-card [data-testid="baseButton-primary"] {
-            background: rgba(0,0,0,0.05);
-            border: none;
-            color: #262730;
-            text-align: left;
-            width: 100%;
-            padding: 0.25rem 0.5rem;
+        /* Remove default Streamlit padding and margins */
+        [data-testid="stVerticalBlock"] {
+            gap: 0 !important;
+            padding: 0 !important;
         }
 
         /* Hide default button styles */
-        .floating-card button {
-            box-shadow: none !important;
+        .floating-card [data-testid="stHorizontalBlock"] {
+            gap: 0.5rem !important;
         }
 
-        .floating-card button:hover {
-            border: none;
-            color: #262730;
-            background: rgba(0,0,0,0.05);
+        /* Clean metric display */
+        [data-testid="stMetricValue"] {
+            font-size: 1.5rem !important;
         }
         </style>
     """
