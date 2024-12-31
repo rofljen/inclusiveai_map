@@ -22,10 +22,13 @@ def render_model_filters(model_types):
             with cols[0]:
                 # Create a button that shows selection state
                 is_selected = model_type in st.session_state.selected_models
-                button_style = """
-                    background-color: %s !important;
-                    opacity: %s !important;
-                """ % (model_colors[model_type], "1" if is_selected else "0.3")
+
+                # Create custom circle div
+                circle_html = f"""
+                <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};">
+                </div>
+                """
+                st.markdown(circle_html, unsafe_allow_html=True)
 
                 if st.button(
                     "",

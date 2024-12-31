@@ -22,21 +22,25 @@ def apply_custom_styles():
             margin-top: 0.5rem;
         }
 
-        /* Style the model filter buttons */
-        [data-testid="baseButton-secondary"] {
+        /* Style model circles */
+        .model-circle {
+            width: 12px !important;
+            height: 12px !important;
             border-radius: 50% !important;
-            width: 14px !important;
-            height: 14px !important;
-            padding: 0 !important;
-            min-width: unset !important;
-            border: none !important;
-            transition: all 0.2s ease !important;
             margin: 4px auto !important;
+            transition: opacity 0.2s ease !important;
         }
 
-        /* Hide button text */
-        [data-testid="baseButton-secondary"] div {
-            display: none !important;
+        /* Hide the actual button */
+        [data-testid="baseButton-secondary"] {
+            position: absolute !important;
+            opacity: 0 !important;
+            cursor: pointer !important;
+            width: 12px !important;
+            height: 12px !important;
+            margin: 4px auto !important;
+            padding: 0 !important;
+            min-width: unset !important;
         }
 
         /* Style metrics */
