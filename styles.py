@@ -13,7 +13,7 @@ def apply_custom_styles():
             max-width: 100%;
         }
 
-        /* Model filters box container */
+        /* Model filters container */
         .model-filters-box {
             background-color: white;
             border: 1px solid #e5e7eb;
@@ -29,7 +29,16 @@ def apply_custom_styles():
             gap: 0.75rem;
             padding: 0.5rem;
             cursor: pointer;
-            position: relative;
+            user-select: none;
+        }
+
+        /* Hide default checkbox */
+        .model-filter-row input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
         }
 
         /* Style model circles */
@@ -37,7 +46,13 @@ def apply_custom_styles():
             width: 12px;
             height: 12px;
             border-radius: 50%;
+            opacity: 0.3;
             transition: opacity 0.2s ease;
+        }
+
+        /* Style circle when checkbox is checked */
+        .model-filter-row input:checked ~ .model-circle {
+            opacity: 1;
         }
 
         /* Model name text */
@@ -45,27 +60,6 @@ def apply_custom_styles():
             font-size: 0.875rem;
             font-weight: 500;
             color: #4b5563;
-        }
-
-        /* Completely hide Streamlit button artifacts */
-        button[data-testid^="baseButton-"] {
-            position: absolute !important;
-            inset: 0 !important;
-            opacity: 0 !important;
-            cursor: pointer !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            min-width: 0 !important;
-            border: none !important;
-            background: none !important;
-            box-shadow: none !important;
-        }
-
-        /* Hide all button children elements */
-        button[data-testid^="baseButton-"] * {
-            display: none !important;
         }
 
         /* Style the Model Types header */

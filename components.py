@@ -13,27 +13,54 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    st.markdown('<div class="model-filters-box">', unsafe_allow_html=True)
+    filters_html = """
+    <form id="model-filters">
+    <div class="model-filters-box">
+    """
+
     for model_type in model_types:
         is_selected = model_type in st.session_state.selected_models
-
-        # Create the model filter row with circle and text
-        filter_html = f'''
-        <div class="model-filter-row">
-            <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};"></div>
+        filters_html += f"""
+        <label class="model-filter-row">
+            <input type="checkbox" name="model" value="{model_type}" {'checked' if is_selected else ''} 
+                   onchange="handleModelChange(this)">
+            <div class="model-circle" style="background-color: {model_colors[model_type]};"></div>
             <span class="model-name">{model_type}</span>
-        </div>
-        '''
-        st.markdown(filter_html, unsafe_allow_html=True)
+        </label>
+        """
 
-        # Hidden button for state management
-        if st.button("", key=f"model_{model_type}", type="secondary"):
-            if is_selected:
-                st.session_state.selected_models.remove(model_type)
-            else:
-                st.session_state.selected_models.append(model_type)
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    filters_html += """
+    </div>
+    </form>
+    <script>
+    function handleModelChange(checkbox) {
+        const value = checkbox.value;
+        const checked = checkbox.checked;
+        window.parent.postMessage({
+            type: 'model_selection',
+            model: value,
+            selected: checked
+        }, '*');
+    }
+    </script>
+    """
+
+    st.markdown(filters_html, unsafe_allow_html=True)
+
+    # Handle model selection through query params
+    query_params = st.experimental_get_query_params()
+    if 'model_selection' in query_params:
+        model = query_params['model_selection'][0]
+        selected = query_params.get('selected', ['true'])[0] == 'true'
+
+        if selected and model not in st.session_state.selected_models:
+            st.session_state.selected_models.append(model)
+        elif not selected and model in st.session_state.selected_models:
+            st.session_state.selected_models.remove(model)
+
+        # Clear the query params
+        st.experimental_set_query_params()
+        st.rerun()
 
     return st.session_state.selected_models
 
