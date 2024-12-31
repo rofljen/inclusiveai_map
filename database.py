@@ -34,55 +34,55 @@ def load_language_data():
     """Load language data from PostgreSQL database with NMT pair information."""
     with get_db_session() as connection:
         query = """
-        WITH lang_connections AS (
+            WITH lang_connections AS (
+                SELECT 
+                    l1.id as lang_id,
+                    string_agg(DISTINCT l2.lang_name, ', ' ORDER BY l2.lang_name) as connected_languages,
+                    array_agg(DISTINCT ARRAY[
+                        ST_Y(l2.coordinates::geometry),
+                        ST_X(l2.coordinates::geometry)
+                    ]::float[]) FILTER (WHERE 
+                        l2.coordinates IS NOT NULL 
+                        AND ST_IsValid(l2.coordinates::geometry)
+                        AND ST_X(l2.coordinates::geometry) BETWEEN -180 AND 180
+                        AND ST_Y(l2.coordinates::geometry) BETWEEN -90 AND 90
+                    ) as connected_coords,
+                    array_agg(DISTINCT l2.id) as connected_lang_ids
+                FROM language_new l1
+                JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
+                JOIN language_new l2 ON 
+                    (nps.source_lang_id = l2.id OR nps.target_lang_id = l2.id) AND
+                    l2.id != l1.id
+                WHERE l2.coordinates IS NOT NULL
+                    AND ST_IsValid(l2.coordinates::geometry)
+                GROUP BY l1.id
+            )
             SELECT 
-                l1.id as lang_id,
-                string_agg(DISTINCT l2.lang_name, ', ' ORDER BY l2.lang_name) as connected_languages,
-                array_agg(DISTINCT ARRAY[
-                    ST_Y(l2.coordinates::geometry),
-                    ST_X(l2.coordinates::geometry)
-                ]::float[]) FILTER (WHERE l2.coordinates IS NOT NULL) as connected_coords
-            FROM language_new l1
-            JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
-            JOIN language_new l2 ON 
-                (nps.source_lang_id = l2.id OR nps.target_lang_id = l2.id) AND
-                l2.id != l1.id
-            WHERE 
-                l2.coordinates IS NOT NULL
-                AND ST_IsValid(l2.coordinates::geometry)
-                AND ST_X(l2.coordinates::geometry) BETWEEN -180 AND 180
-                AND ST_Y(l2.coordinates::geometry) BETWEEN -90 AND 90
-            GROUP BY l1.id
-        )
-        SELECT 
-            l.id,
-            l.lang_name as name,
-            l.iso_code,
-            ST_Y(l.coordinates::geometry) as latitude,
-            ST_X(l.coordinates::geometry) as longitude,
-            ARRAY[
-                CASE WHEN l.asr THEN 'ASR' END,
-                CASE WHEN l.nmt THEN 'NMT' END,
-                CASE WHEN l.tts THEN 'TTS' END
-            ] as available_models,
-            (SELECT COUNT(*)
-             FROM nmt_pairs_source nps
-             WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id) as nmt_pair_count,
-            COALESCE(lc.connected_languages, '') as connected_languages,
-            COALESCE(lc.connected_coords, ARRAY[]::float[][]) as connected_lang_coords,
-            EXISTS (
-                SELECT 1 
-                FROM nmt_pairs_source nps 
-                WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id
-            ) as has_nmt_pair
-        FROM language_new l
-        LEFT JOIN lang_connections lc ON l.id = lc.lang_id
-        WHERE l.coordinates IS NOT NULL
-            AND ST_IsValid(l.coordinates::geometry)
-            AND ST_X(l.coordinates::geometry) BETWEEN -180 AND 180
-            AND ST_Y(l.coordinates::geometry) BETWEEN -90 AND 90
-        ORDER BY l.lang_name
-        """
+                l.id,
+                l.lang_name as name,
+                l.iso_code,
+                ST_Y(l.coordinates::geometry) as latitude,
+                ST_X(l.coordinates::geometry) as longitude,
+                ARRAY[
+                    CASE WHEN l.asr THEN 'ASR' END,
+                    CASE WHEN l.nmt THEN 'NMT' END,
+                    CASE WHEN l.tts THEN 'TTS' END
+                ] as available_models,
+                (SELECT COUNT(*)
+                 FROM nmt_pairs_source nps
+                 WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id) as nmt_pair_count,
+                COALESCE(lc.connected_languages, '') as connected_languages,
+                COALESCE(lc.connected_coords, ARRAY[]::float[][]) as connected_coords,
+                COALESCE(lc.connected_lang_ids, ARRAY[]::integer[]) as connected_lang_ids,
+                TRUE as has_nmt_pair
+            FROM language_new l
+            INNER JOIN lang_connections lc ON l.id = lc.lang_id
+            WHERE l.coordinates IS NOT NULL
+                AND ST_IsValid(l.coordinates::geometry)
+                AND ST_X(l.coordinates::geometry) BETWEEN -180 AND 180
+                AND ST_Y(l.coordinates::geometry) BETWEEN -90 AND 90
+            ORDER BY l.lang_name
+            """
         return pd.read_sql(query, connection)
 
 @st.cache_data

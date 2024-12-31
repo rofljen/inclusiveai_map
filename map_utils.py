@@ -80,35 +80,45 @@ def create_model_indicator_html(available_models, selected_models):
 
 def add_language_connections(m, df, selected_language_id=None):
     """Add lines connecting languages that have NMT pairs."""
-    if selected_language_id is not None:
-        # Filter connections for selected language
-        connections = df[
-            ((df['source_lang_id'] == selected_language_id) |
-             (df['target_lang_id'] == selected_language_id)) &
-            df['has_nmt_pair']
-        ]
-    else:
-        # Show all connections
-        connections = df[df['has_nmt_pair']]
+    if selected_language_id is None:
+        return
+
+    # Get the selected language's data
+    selected_lang = df[df['id'] == selected_language_id].iloc[0]
+
+    if not isinstance(selected_lang.get('connected_coords'), (list, np.ndarray)):
+        return
 
     # Create a feature group for connections
     connections_group = folium.FeatureGroup(name="NMT Connections")
 
+    # Get source coordinates
+    source_coords = [selected_lang['latitude'], selected_lang['longitude']]
+
     # Add lines for each connection
-    for _, row in connections.iterrows():
-        if isinstance(row.get('connected_lang_coords'), (list, np.ndarray)) and len(row['connected_lang_coords']) > 0:
-            source_coords = [row['latitude'], row['longitude']]
-            for target_coords in row['connected_lang_coords']:
-                if isinstance(target_coords, (list, np.ndarray)) and len(target_coords) == 2:
-                    # Create a line with animation
-                    line = plugins.AntPath(
-                        locations=[source_coords, target_coords],
-                        weight=2,
-                        color='#4CAF50',
-                        opacity=0.6,
-                        popup=f"NMT Pair: {row['name']} ↔ {row.get('connected_lang_name', 'Unknown')}"
-                    )
-                    line.add_to(connections_group)
+    for idx, target_coords in enumerate(selected_lang['connected_coords']):
+        if isinstance(target_coords, (list, np.ndarray)) and len(target_coords) == 2:
+            # Get the connected language name
+            connected_lang_name = selected_lang['connected_languages'].split(', ')[idx] if idx < len(selected_lang['connected_languages'].split(', ')) else 'Unknown'
+
+            # Create a line with animation
+            line = plugins.AntPath(
+                locations=[source_coords, target_coords],
+                weight=2,
+                color='#4CAF50',
+                opacity=0.6,
+                popup=f"NMT Pair: {selected_lang['name']} ↔ {connected_lang_name}"
+            )
+            line.add_to(connections_group)
+
+            # Add markers for connected languages
+            folium.CircleMarker(
+                location=target_coords,
+                radius=8,
+                color="#4CAF50",
+                fill=True,
+                popup=f"Connected: {connected_lang_name}"
+            ).add_to(connections_group)
 
     connections_group.add_to(m)
 
