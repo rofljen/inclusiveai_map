@@ -16,13 +16,14 @@ def render_model_filters(model_types):
     # Create legend items as clickable filters
     for model_type in model_types:
         is_selected = model_type in st.session_state.selected_models
-        model_class = f'model-{model_type.lower()}'
 
         col1, col2 = st.columns([0.2, 0.8])
 
         with col1:
-            # Hidden button to handle the click event
-            if st.button(f"Toggle {model_type}", key=f"toggle_{model_type}", label_visibility="hidden"):
+            # Create a button styled as a circle
+            if st.button("", key=f"toggle_{model_type}", 
+                        help=f"Toggle {model_type} visibility",
+                        type="secondary"):
                 if is_selected:
                     st.session_state.selected_models.remove(model_type)
                 else:
@@ -30,7 +31,7 @@ def render_model_filters(model_types):
                 st.rerun()
 
         with col2:
-            st.markdown(f'<span class="legend-label">{model_type}</span>', unsafe_allow_html=True)
+            st.markdown(f'<span style="line-height: 36px;">{model_type}</span>', unsafe_allow_html=True)
 
     return list(st.session_state.selected_models)
 
