@@ -26,25 +26,32 @@ def apply_custom_styles():
             min-width: 200px;
         }
 
+        .floating-card h3 {
+            margin-bottom: 1rem;
+            color: #262730;
+        }
+
+        /* Model filters container */
+        .model-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
         /* Remove default Streamlit padding and margins */
-        [data-testid="stVerticalBlock"] {
+        .floating-card [data-testid="stVerticalBlock"] {
             gap: 0 !important;
             padding: 0 !important;
         }
 
-        /* Hide default button styles */
-        .floating-card [data-testid="stHorizontalBlock"] {
-            gap: 0.5rem !important;
-        }
-
-        /* Style the buttons in the legend */
+        /* Style the buttons */
         .floating-card button {
             width: 24px !important;
             height: 24px !important;
             padding: 0 !important;
             border-radius: 50% !important;
-            margin: 8px 0 !important;
-            border: none !important;
+            margin: 0 !important;
+            border: 2px solid transparent !important;
             transition: all 0.3s ease !important;
         }
 
@@ -66,6 +73,11 @@ def apply_custom_styles():
             background-color: #2196F3 !important;
         }
 
+        /* Selected state */
+        .floating-card button[data-selected="true"] {
+            border-color: #262730 !important;
+        }
+
         /* Button hover effects */
         .floating-card button:hover {
             opacity: 0.8;
@@ -75,6 +87,19 @@ def apply_custom_styles():
         /* Clean metric display */
         [data-testid="stMetricValue"] {
             font-size: 1.5rem !important;
+        }
+
+        /* Adjust column layout */
+        .floating-card [data-testid="stHorizontalBlock"] {
+            gap: 1rem !important;
+            align-items: center !important;
+        }
+
+        /* Style text next to buttons */
+        .floating-card span {
+            color: #262730;
+            font-size: 14px;
+            margin-left: 8px;
         }
         </style>
     """

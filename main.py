@@ -32,11 +32,11 @@ def main():
             render_language_info_page(st.session_state.selected_language)
             return
 
-        # Create a container for the floating card and map
-        map_container = st.container()
-
         # Display statistics above the map
         render_statistics(df)
+
+        # Create a container for the map
+        map_container = st.container()
 
         # Display map
         with map_container:
@@ -47,9 +47,7 @@ def main():
                 """
                 <div class="floating-card">
                     <h3>Model Types</h3>
-                    <div class="model-filters">
-                        <div class="legend-container"></div>
-                    </div>
+                    <div class="model-filters"></div>
                 </div>
                 """,
                 unsafe_allow_html=True
