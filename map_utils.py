@@ -104,19 +104,21 @@ def create_popup_content(row):
             {''.join(model_badges) if model_badges else '<span style="color: #666;">None available</span>'}
         </div>
         <div style='margin-top: 10px'>
-            <button onclick="
-                window.parent.location.href = '?selected_language={row['id']}';
-            " style="
-                color: white;
-                background-color: #1f77b4;
-                border: none;
-                padding: 4px 12px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-            ">
+            <a href="?selected_language={row['id']}" 
+               target="_blank"
+               style="
+                   display: inline-block;
+                   color: white;
+                   background-color: #1f77b4;
+                   border: none;
+                   padding: 4px 12px;
+                   border-radius: 4px;
+                   cursor: pointer;
+                   font-size: 14px;
+                   text-decoration: none;
+               ">
                 View Details
-            </button>
+            </a>
         </div>
     </div>
     """
