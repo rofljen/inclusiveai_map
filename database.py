@@ -23,20 +23,19 @@ def load_language_data():
         l.id,
         l.lang_name as name,
         l.iso_code,
-        CASE 
-            WHEN l.coordinates IS NOT NULL THEN ST_Y(l.coordinates::geometry)
-            ELSE NULL
-        END as latitude,
-        CASE 
-            WHEN l.coordinates IS NOT NULL THEN ST_X(l.coordinates::geometry)
-            ELSE NULL
-        END as longitude,
+        NULLIF(ST_Y(l.coordinates::geometry), 'NaN') as latitude,
+        NULLIF(ST_X(l.coordinates::geometry), 'NaN') as longitude,
         ARRAY[
             CASE WHEN l.asr THEN 'ASR' END,
             CASE WHEN l.nmt THEN 'NMT' END,
             CASE WHEN l.tts THEN 'TTS' END
         ] as available_models
     FROM language_new l
+    WHERE l.coordinates IS NOT NULL
+        AND ST_X(l.coordinates::geometry) IS NOT NULL 
+        AND ST_Y(l.coordinates::geometry) IS NOT NULL
+        AND ST_X(l.coordinates::geometry) BETWEEN -180 AND 180
+        AND ST_Y(l.coordinates::geometry) BETWEEN -90 AND 90
     ORDER BY l.lang_name
     """
     return pd.read_sql(query, engine)
