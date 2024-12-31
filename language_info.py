@@ -17,8 +17,8 @@ def get_language_details(language_id):
             CASE WHEN ln.nmt THEN 'NMT' END,
             CASE WHEN ln.tts THEN 'TTS' END
         ] as available_models,
-        ST_Y(ST_AsText(coordinates::geometry)) as latitude,
-        ST_X(ST_AsText(coordinates::geometry)) as longitude
+        ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
+        ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
     FROM language_new ln
     LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
     LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
