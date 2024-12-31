@@ -13,54 +13,30 @@ def render_model_filters(model_types):
         'TTS': '#2196F3'
     }
 
-    filters_html = """
-    <form id="model-filters">
-    <div class="model-filters-box">
-    """
+    # Create a single container for all filters
+    with st.container():
+        for model_type in model_types:
+            is_selected = model_type in st.session_state.selected_models
+            col1, col2 = st.columns([0.1, 0.9])
 
-    for model_type in model_types:
-        is_selected = model_type in st.session_state.selected_models
-        filters_html += f"""
-        <label class="model-filter-row">
-            <input type="checkbox" name="model" value="{model_type}" {'checked' if is_selected else ''} 
-                   onchange="handleModelChange(this)">
-            <div class="model-circle" style="background-color: {model_colors[model_type]};"></div>
-            <span class="model-name">{model_type}</span>
-        </label>
-        """
+            with col1:
+                if st.checkbox("", value=is_selected, key=f"model_{model_type}", label_visibility="collapsed"):
+                    if not is_selected:
+                        st.session_state.selected_models.append(model_type)
+                else:
+                    if is_selected:
+                        st.session_state.selected_models.remove(model_type)
 
-    filters_html += """
-    </div>
-    </form>
-    <script>
-    function handleModelChange(checkbox) {
-        const value = checkbox.value;
-        const checked = checkbox.checked;
-        window.parent.postMessage({
-            type: 'model_selection',
-            model: value,
-            selected: checked
-        }, '*');
-    }
-    </script>
-    """
-
-    st.markdown(filters_html, unsafe_allow_html=True)
-
-    # Handle model selection through query params
-    query_params = st.experimental_get_query_params()
-    if 'model_selection' in query_params:
-        model = query_params['model_selection'][0]
-        selected = query_params.get('selected', ['true'])[0] == 'true'
-
-        if selected and model not in st.session_state.selected_models:
-            st.session_state.selected_models.append(model)
-        elif not selected and model in st.session_state.selected_models:
-            st.session_state.selected_models.remove(model)
-
-        # Clear the query params
-        st.experimental_set_query_params()
-        st.rerun()
+            with col2:
+                st.markdown(
+                    f'<div style="display: flex; align-items: center; gap: 8px;">'
+                    f'<div style="width: 12px; height: 12px; border-radius: 50%; '
+                    f'background-color: {model_colors[model_type]}; '
+                    f'opacity: {1 if is_selected else 0.3};"></div>'
+                    f'<span style="font-size: 0.875rem; color: #4b5563;">{model_type}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
 
     return st.session_state.selected_models
 
