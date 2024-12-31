@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import streamlit as st
 
 @st.cache_resource
@@ -16,9 +16,21 @@ def get_database_connection():
 
 @st.cache_data
 def load_language_data():
-    """Load language data from PostgreSQL database."""
+    """Load language data from PostgreSQL database with NMT pair information."""
     engine = get_database_connection()
     query = """
+    WITH lang_connections AS (
+        SELECT 
+            l1.id as lang_id,
+            string_agg(DISTINCT l2.lang_name, ', ' ORDER BY l2.lang_name) as connected_languages,
+            array_agg(DISTINCT ARRAY[CAST(l2.latitude AS float), CAST(l2.longitude AS float)]) as connected_coords
+        FROM language_new l1
+        JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
+        JOIN language_new l2 ON 
+            (nps.source_lang_id = l2.id OR nps.target_lang_id = l2.id) AND
+            l2.id != l1.id
+        GROUP BY l1.id
+    )
     SELECT 
         l.id,
         l.lang_name as name,
@@ -32,8 +44,16 @@ def load_language_data():
         ] as available_models,
         (SELECT COUNT(*)
          FROM nmt_pairs_source nps
-         WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id) as nmt_pair_count
+         WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id) as nmt_pair_count,
+        COALESCE(lc.connected_languages, '') as connected_languages,
+        COALESCE(lc.connected_coords, ARRAY[]::float[][]) as connected_lang_coords,
+        EXISTS (
+            SELECT 1 
+            FROM nmt_pairs_source nps 
+            WHERE nps.source_lang_id = l.id OR nps.target_lang_id = l.id
+        ) as has_nmt_pair
     FROM language_new l
+    LEFT JOIN lang_connections lc ON l.id = lc.lang_id
     WHERE l.coordinates IS NOT NULL
         AND ST_X(l.coordinates::geometry) IS NOT NULL 
         AND ST_Y(l.coordinates::geometry) IS NOT NULL
@@ -56,12 +76,29 @@ def get_language_nmt_pairs(language_id):
     SELECT 
         src.lang_name as source_language,
         tgt.lang_name as target_language,
-        NULL as num_lines,
-        nps.chrf_plus as chrf_score
+        nps.chrf_plus as chrf_score,
+        nps.spbleu_spm_200 as bleu_score
     FROM nmt_pairs_source nps
     JOIN language_new src ON nps.source_lang_id = src.id
     JOIN language_new tgt ON nps.target_lang_id = tgt.id
-    WHERE nps.source_lang_id = %(lang_id)s OR nps.target_lang_id = %(lang_id)s
+    WHERE nps.source_lang_id = :lang_id OR nps.target_lang_id = :lang_id
     ORDER BY nps.chrf_plus DESC NULLS LAST
     """
-    return pd.read_sql(query, engine, params={'lang_id': language_id})
+    return pd.read_sql(text(query), engine, params={'lang_id': language_id})
+
+@st.cache_data
+def get_all_nmt_pairs():
+    """Get all NMT pairs with their scores."""
+    engine = get_database_connection()
+    query = """
+    SELECT 
+        src.lang_name as source_language,
+        tgt.lang_name as target_language,
+        nps.chrf_plus as chrf_score,
+        nps.spbleu_spm_200 as bleu_score
+    FROM nmt_pairs_source nps
+    JOIN language_new src ON nps.source_lang_id = src.id
+    JOIN language_new tgt ON nps.target_lang_id = tgt.id
+    ORDER BY nps.chrf_plus DESC NULLS LAST
+    """
+    return pd.read_sql(query, engine)
