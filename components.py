@@ -2,10 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def render_sidebar_filters(model_types):
-    """Render sidebar filters for model types and search."""
-    st.sidebar.title("Filters")
-
-    # Model type selection using buttons
+    """Render sidebar filters for model types."""
     st.sidebar.markdown("### Model Types")
 
     # Initialize session state for selected models if not exists
@@ -15,8 +12,23 @@ def render_sidebar_filters(model_types):
     # Create a row of buttons for each model type
     cols = st.sidebar.columns(len(model_types))
 
+    model_colors = {
+        'ASR': '#FF4B4B',
+        'NMT': '#4CAF50',
+        'TTS': '#2196F3'
+    }
+
     for i, model_type in enumerate(model_types):
         with cols[i]:
+            button_style = f"""
+                <style>
+                    div[data-testid="stHorizontalBlock"] button[key="model_button_{model_type}"] {{
+                        background-color: {model_colors[model_type]} !important;
+                    }}
+                </style>
+            """
+            st.markdown(button_style, unsafe_allow_html=True)
+
             if st.button(
                 model_type,
                 key=f"model_button_{model_type}",
@@ -28,13 +40,7 @@ def render_sidebar_filters(model_types):
                     st.session_state.selected_models.add(model_type)
                 st.rerun()
 
-    # Search box
-    search_query = st.sidebar.text_input(
-        "Search Languages",
-        ""
-    ).lower()
-
-    return list(st.session_state.selected_models), search_query
+    return list(st.session_state.selected_models), ""
 
 def render_statistics(df):
     """Render statistics about languages and models."""
@@ -65,6 +71,74 @@ def render_statistics(df):
             languages_with_models
         )
 
+def render_search_page(df, search_query, selected_models):
+    """Render the search and filter page."""
+    st.subheader("Search & Filter Languages")
+
+    # Search box
+    search_query = st.text_input("Search by Language Name or ISO Code", "").lower()
+
+    # Advanced filters
+    with st.expander("Advanced Filters"):
+        col1, col2 = st.columns(2)
+        with col1:
+            min_models = st.slider("Minimum Number of Models", 0, 3, 0)
+        with col2:
+            show_only_with_coords = st.checkbox("Show Only Languages with Coordinates", True)
+
+    # Filter the dataframe
+    filtered_df = df.copy()
+
+    if search_query:
+        filtered_df = filtered_df[
+            filtered_df['name'].str.lower().str.contains(search_query) |
+            filtered_df['iso_code'].str.lower().str.contains(search_query)
+        ]
+
+    if selected_models:
+        filtered_df = filtered_df[
+            filtered_df['available_models'].apply(
+                lambda x: any(model in x for model in selected_models)
+            )
+        ]
+
+    if min_models > 0:
+        filtered_df = filtered_df[
+            filtered_df['available_models'].apply(
+                lambda x: len([m for m in x if m]) >= min_models
+            )
+        ]
+
+    if show_only_with_coords:
+        filtered_df = filtered_df[
+            filtered_df['latitude'].notna() & filtered_df['longitude'].notna()
+        ]
+
+    # Display results
+    st.subheader(f"Results ({len(filtered_df)} languages)")
+
+    for idx, row in filtered_df.iterrows():
+        with st.container():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                if st.button(row['name'], key=f"lang_{idx}"):
+                    st.session_state.selected_language = row['id']
+                    st.rerun()
+            with col2:
+                models = [m for m in row['available_models'] if m]
+                if models:
+                    model_badges = []
+                    for model in models:
+                        color = {'ASR': '#FF4B4B', 'NMT': '#4CAF50', 'TTS': '#2196F3'}[model]
+                        model_badges.append(
+                            f'<span style="background-color: {color}; color: white; '
+                            f'padding: 2px 8px; border-radius: 10px; margin-right: 5px;">{model}</span>'
+                        )
+                    st.markdown(''.join(model_badges), unsafe_allow_html=True)
+                else:
+                    st.text("No models available")
+            st.markdown("---")
+
 def render_language_table(df, search_query, selected_models):
     """Render a table showing language and model information."""
     filtered_df = df.copy()
@@ -83,7 +157,6 @@ def render_language_table(df, search_query, selected_models):
         ]
 
     if not filtered_df.empty:
-        # Create clickable links for language names
         for idx, row in filtered_df.iterrows():
             col1, col2 = st.columns([3, 1])
             with col1:
@@ -91,10 +164,16 @@ def render_language_table(df, search_query, selected_models):
                     st.session_state.selected_language = row['id']
                     st.rerun()
             with col2:
-                # Show tooltip with available models
                 models = [m for m in row['available_models'] if m]
                 if models:
-                    st.info(f"Available Models: {', '.join(models)}")
+                    model_badges = []
+                    for model in models:
+                        color = {'ASR': '#FF4B4B', 'NMT': '#4CAF50', 'TTS': '#2196F3'}[model]
+                        model_badges.append(
+                            f'<span style="background-color: {color}; color: white; '
+                            f'padding: 2px 8px; border-radius: 10px; margin-right: 5px;">{model}</span>'
+                        )
+                    st.markdown(''.join(model_badges), unsafe_allow_html=True)
                 else:
                     st.text("No models available")
     else:

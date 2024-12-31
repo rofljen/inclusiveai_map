@@ -4,10 +4,10 @@ from map_utils import display_map
 from components import (
     render_sidebar_filters,
     render_statistics,
-    render_language_table
+    render_language_table,
+    render_search_page
 )
 from styles import apply_custom_styles
-from db_utils import handle_backup_upload
 from language_info import render_language_info_page
 
 def main():
@@ -23,6 +23,8 @@ def main():
     # Initialize session state for selected language
     if 'selected_language' not in st.session_state:
         st.session_state.selected_language = None
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = 'map'
 
     try:
         # Load data
@@ -34,28 +36,27 @@ def main():
             render_language_info_page(st.session_state.selected_language)
             return
 
+        # Navigation
+        st.sidebar.title("Navigation")
+        page = st.sidebar.radio("", ["Map View", "Search & Filter"], 
+                              format_func=lambda x: x)
+
         # Page title
         st.title("🌍 Language Model Availability Dashboard")
 
-        # Render sidebar filters
+        # Render model type filters in sidebar
         selected_models, search_query = render_sidebar_filters(model_types)
 
-        # Display statistics
-        render_statistics(df)
+        if page == "Map View":
+            # Display statistics
+            render_statistics(df)
 
-        # Create tabs for different views
-        tab1, tab2, tab3 = st.tabs(["Map View", "Table View", "Database Management"])
-
-        with tab1:
+            # Display map
             st.subheader("Geographic Distribution")
             display_map(df, selected_models)
 
-        with tab2:
-            st.subheader("Language Model Availability")
-            render_language_table(df, search_query, selected_models)
-
-        with tab3:
-            handle_backup_upload()
+        else:  # Search & Filter page
+            render_search_page(df, search_query, selected_models)
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
