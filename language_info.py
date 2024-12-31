@@ -110,15 +110,10 @@ def render_language_info_page(language_id):
                         use_container_width=True
                     )
 
-                # Detailed list view
-                st.subheader("Detailed Pairs Information")
-                for _, pair in nmt_pairs.iterrows():
-                    quality = "★" * int((pair['chrf_score'] or 0) * 5 / 100)
-                    st.markdown(f"""
-                    - **{pair['source_language']} ↔ {pair['target_language']}**  
-                      Quality: {quality} ({pair['chrf_score']:.1f}%)  
-                      BLEU Score: {pair['bleu_score']:.1f}
-                    """)
+                # Map showing connections
+                st.header("Translation Connections Map")
+                df = load_language_data()
+                display_map(df, selected_models=['NMT'], selected_language_id=language_id)
 
         with col2:
             # Model Support Section
@@ -143,12 +138,6 @@ def render_language_info_page(language_id):
                             st.markdown(f"[Access Model]({details['tts_url']})")
             else:
                 st.warning("No language models currently available")
-
-            # Add a map showing connections
-            if not nmt_pairs.empty:
-                st.header("Translation Connections")
-                df = load_language_data()
-                display_map(df, selected_models=['NMT'], selected_language_id=language_id)
 
         # Back button with some spacing
         st.markdown("---")
