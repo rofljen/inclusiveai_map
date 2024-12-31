@@ -29,6 +29,7 @@ def apply_custom_styles():
             gap: 0.75rem;
             padding: 0.25rem 0;
             cursor: pointer;
+            position: relative;
         }
 
         /* Style model circles */
@@ -47,9 +48,17 @@ def apply_custom_styles():
             color: #4b5563;
         }
 
-        /* Hide Streamlit button */
-        button[kind="secondary"] {
-            display: none !important;
+        /* Style hidden buttons */
+        button[data-testid^="baseButton-model_"] {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            opacity: 0 !important;
+            cursor: pointer !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         /* Style the Model Types header */
@@ -70,7 +79,6 @@ def apply_custom_styles():
 
         <script>
         function handleModelClick(modelType) {
-            // Find and click the corresponding hidden button
             const button = document.querySelector(`button[data-testid="baseButton-model_${modelType}"]`);
             if (button) button.click();
         }

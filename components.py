@@ -27,7 +27,7 @@ def render_model_filters(model_types):
         st.markdown(filter_html, unsafe_allow_html=True)
 
         # Hidden button for state management
-        if st.button("##", key=f"model_{model_type}", help=f"Toggle {model_type} visibility"):
+        if st.button("", key=f"model_{model_type}", help=f"Toggle {model_type} visibility", type="secondary"):
             if is_selected:
                 st.session_state.selected_models.remove(model_type)
             else:
