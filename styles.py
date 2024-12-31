@@ -27,7 +27,7 @@ def apply_custom_styles():
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.25rem 0;
+            padding: 0.5rem;
             cursor: pointer;
             position: relative;
         }
@@ -38,7 +38,6 @@ def apply_custom_styles():
             height: 12px;
             border-radius: 50%;
             transition: opacity 0.2s ease;
-            flex-shrink: 0;
         }
 
         /* Model name text */
@@ -48,17 +47,25 @@ def apply_custom_styles():
             color: #4b5563;
         }
 
-        /* Style hidden buttons */
-        button[data-testid^="baseButton-model_"] {
+        /* Completely hide Streamlit button artifacts */
+        button[data-testid^="baseButton-"] {
             position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
+            inset: 0 !important;
             opacity: 0 !important;
             cursor: pointer !important;
             margin: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 0 !important;
+            border: none !important;
+            background: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Hide all button children elements */
+        button[data-testid^="baseButton-"] * {
+            display: none !important;
         }
 
         /* Style the Model Types header */
@@ -76,11 +83,4 @@ def apply_custom_styles():
             }
         }
         </style>
-
-        <script>
-        function handleModelClick(modelType) {
-            const button = document.querySelector(`button[data-testid="baseButton-model_${modelType}"]`);
-            if (button) button.click();
-        }
-        </script>
     """

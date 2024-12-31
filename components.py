@@ -18,16 +18,16 @@ def render_model_filters(model_types):
         is_selected = model_type in st.session_state.selected_models
 
         # Create the model filter row with circle and text
-        filter_html = f"""
-        <div class="model-filter-row" onclick="handleModelClick('{model_type}')">
+        filter_html = f'''
+        <div class="model-filter-row">
             <div class="model-circle" style="background-color: {model_colors[model_type]}; opacity: {'1' if is_selected else '0.3'};"></div>
             <span class="model-name">{model_type}</span>
         </div>
-        """
+        '''
         st.markdown(filter_html, unsafe_allow_html=True)
 
         # Hidden button for state management
-        if st.button("", key=f"model_{model_type}", help=f"Toggle {model_type} visibility", type="secondary"):
+        if st.button("", key=f"model_{model_type}", type="secondary"):
             if is_selected:
                 st.session_state.selected_models.remove(model_type)
             else:
