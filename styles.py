@@ -59,6 +59,21 @@ def apply_custom_styles():
             color: #6b7280 !important;
         }
 
+        /* Make model type text smaller and refined */
+        span[style*="color:"] {
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            color: #4b5563 !important;
+        }
+
+        /* Style the Model Types header */
+        h3 {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 0.75rem !important;
+            color: #374151 !important;
+        }
+
         /* Responsive layout adjustments */
         @media (max-width: 768px) {
             .main .block-container {
