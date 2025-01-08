@@ -87,6 +87,20 @@ def render_language_info_page(language_id):
             if not nmt_pairs.empty:
                 st.header("Neural Machine Translation Pairs")
 
+                # Display total number of pairs
+                st.markdown(f"**Total Translation Pairs:** {len(nmt_pairs)}")
+
+                # Create expander for detailed pairs information
+                with st.expander("View All Translation Pairs", expanded=True):
+                    # Create a formatted table for pairs
+                    for _, pair in nmt_pairs.iterrows():
+                        st.markdown(f"""
+                        ##### {pair['source_language']} ↔ {pair['target_language']}
+                        - **chrF++ Score:** {pair['chrf_score']:.2f}
+                        - **BLEU Score:** {pair['bleu_score']:.2f}
+                        ---
+                        """)
+
                 # Create tabs for different views
                 tabs = st.tabs(["Table View", "Chart View"])
 
