@@ -110,7 +110,7 @@ def get_language_nmt_pairs(language_id):
         query = """
         WITH language_pairs AS (
             -- Get pairs where the language is the source
-            SELECT 
+            SELECT DISTINCT
                 src.lang_name as source_language,
                 tgt.lang_name as target_language,
                 nps.chrf_plus as chrf_score,
@@ -119,29 +119,15 @@ def get_language_nmt_pairs(language_id):
             JOIN language_new src ON nps.source_lang_id = src.id
             JOIN language_new tgt ON nps.target_lang_id = tgt.id
             WHERE nps.source_lang_id = :lang_id
-            AND src.id != tgt.id  -- Exclude self-translations
-
-            UNION ALL
-
-            -- Get pairs where the language is the target
-            SELECT 
-                src.lang_name as source_language,
-                tgt.lang_name as target_language,
-                nps.chrf_plus as chrf_score,
-                nps.spbleu_spm_200 as bleu_score
-            FROM nmt_pairs_source nps
-            JOIN language_new src ON nps.source_lang_id = src.id
-            JOIN language_new tgt ON nps.target_lang_id = tgt.id
-            WHERE nps.target_lang_id = :lang_id
-            AND src.id != tgt.id  -- Exclude self-translations
+            AND nps.source_lang_id != nps.target_lang_id  -- Exclude self-translations
         )
-        SELECT DISTINCT
+        SELECT
             source_language,
             target_language,
             chrf_score,
             bleu_score
         FROM language_pairs
-        ORDER BY chrf_score DESC NULLS LAST
+        ORDER BY chrf_score DESC NULLS LAST;
         """
         return pd.read_sql(text(query), connection, params={'lang_id': language_id})
 
