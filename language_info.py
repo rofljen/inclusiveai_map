@@ -16,12 +16,12 @@ def get_language_nmt_pairs(language_id):
             src.lang_name as source_language,
             tgt.lang_name as target_language,
             nps.chrf_plus as chrf_score,
-            nps.spbleu_spm_200 as bleu_score,
-            'source' as pair_type
+            nps.spbleu_spm_200 as bleu_score
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
         WHERE src.id = %(lang_id)s
+        AND src.id != tgt.id  -- Exclude self-translations
 
         UNION ALL
 
@@ -30,12 +30,12 @@ def get_language_nmt_pairs(language_id):
             src.lang_name as source_language,
             tgt.lang_name as target_language,
             nps.chrf_plus as chrf_score,
-            nps.spbleu_spm_200 as bleu_score,
-            'target' as pair_type
+            nps.spbleu_spm_200 as bleu_score
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
         WHERE tgt.id = %(lang_id)s
+        AND src.id != tgt.id  -- Exclude self-translations
     )
     SELECT DISTINCT
         source_language,
