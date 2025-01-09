@@ -10,22 +10,16 @@ def get_language_nmt_pairs(language_id):
     """Get NMT pairs for a specific language."""
     engine = get_database_connection()
     query = """
-    WITH current_language AS (
-        SELECT lang_name
-        FROM language_new
-        WHERE id = %(lang_id)s
-    )
     SELECT 
-        nps."Source" as source_language,
-        nps."Target" as target_language,
+        src.lang_name as source_language,
+        tgt.lang_name as target_language,
         nps.chrf_plus as chrf_score,
         nps.spbleu_spm_200 as bleu_score
     FROM nmt_pairs_source nps
-    JOIN current_language cl ON 
-        nps."Source" = cl.lang_name OR 
-        nps."Target" = cl.lang_name
-    WHERE (nps.chrf_plus IS NOT NULL OR nps.spbleu_spm_200 IS NOT NULL)
-    ORDER BY COALESCE(nps.chrf_plus, 0) DESC;
+    JOIN language_new src ON nps.source_lang_id = src.id
+    JOIN language_new tgt ON nps.target_lang_id = tgt.id
+    WHERE src.id = %(lang_id)s OR tgt.id = %(lang_id)s
+    ORDER BY nps.chrf_plus DESC NULLS LAST
     """
     return pd.read_sql_query(query, engine, params={'lang_id': language_id})
 
