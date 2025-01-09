@@ -31,7 +31,6 @@ def get_language_details(language_id):
         ln.lang_name,
         ln.iso_code,
         ln.glottocode,
-        ln.num_speakers,
         lf.name as family_name,
         lf.id as family_id,
         ls.name as subfamily_name,
@@ -104,8 +103,6 @@ def render_language_info_page(language_id):
                     st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
 
             st.markdown(f"**Glotto Code:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}")
-            if pd.notna(details['num_speakers']):
-                st.markdown(f"**Number of Speakers:** {details['num_speakers']:,}")
 
         # Language Classification
         with col2:
