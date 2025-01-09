@@ -10,7 +10,7 @@ def get_language_details(language_id):
         ln.id,
         ln.lang_name,
         ln.iso_code,
-        ln.glotto_code,
+        ln.glottocode,
         ln.city,
         ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
         ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
@@ -64,7 +64,7 @@ def render_language_info_page(language_id):
             elif pd.notna(details['latitude']) and pd.notna(details['longitude']):
                 st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
         with col2:
-            st.markdown(f"**Glotto Code:** {details['glotto_code'] if pd.notna(details['glotto_code']) else 'N/A'}")
+            st.markdown(f"**Glotto Code:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}")
 
         # NMT Pairs Section
         nmt_pairs = get_language_nmt_pairs(language_id)
