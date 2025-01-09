@@ -1,6 +1,20 @@
 import streamlit as st
 import pandas as pd
 from database import get_database_connection, get_language_nmt_pairs
+import trafilatura
+import urllib.parse
+
+def get_location_from_coordinates(lat, lon):
+    """Get location information from coordinates using OpenStreetMap Nominatim."""
+    try:
+        # Use OpenStreetMap Nominatim to get location info
+        url = f"https://nominatim.openstreetmap.org/reverse?format=xml&lat={lat}&lon={lon}"
+        downloaded = trafilatura.fetch_url(url)
+        if downloaded:
+            location_text = trafilatura.extract(downloaded)
+            return location_text.split(',')[0] if location_text else None
+    except Exception:
+        return None
 
 def get_language_details(language_id):
     """Fetch detailed information about a specific language."""
@@ -11,7 +25,6 @@ def get_language_details(language_id):
         ln.lang_name,
         ln.iso_code,
         ln.glottocode,
-        ln.city,
         ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
         ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
     FROM language_new ln
@@ -59,10 +72,12 @@ def render_language_info_page(language_id):
         # Basic Information Section
         col1, col2 = st.columns(2)
         with col1:
-            if pd.notna(details['city']):
-                st.markdown(f"**Location:** {details['city']}")
-            elif pd.notna(details['latitude']) and pd.notna(details['longitude']):
-                st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
+            if pd.notna(details['latitude']) and pd.notna(details['longitude']):
+                location = get_location_from_coordinates(details['latitude'], details['longitude'])
+                if location:
+                    st.markdown(f"**Location:** {location}")
+                else:
+                    st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
         with col2:
             st.markdown(f"**Glotto Code:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}")
 
@@ -97,7 +112,8 @@ def render_language_info_page(language_id):
             st.rerun()
 
     except Exception as e:
-        st.error(f"Error loading language details: {str(e)}")
+        st.error(f"An error occurred: {str(e)}")
+        st.error("Please check your database connection and try again.")
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
             st.rerun()
