@@ -20,7 +20,7 @@ def get_language_nmt_pairs(language_id):
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
-        WHERE src.id = %(lang_id)s
+        WHERE nps.source_lang_id = %(lang_id)s
         AND src.id != tgt.id  -- Exclude self-translations
 
         UNION ALL
@@ -34,7 +34,7 @@ def get_language_nmt_pairs(language_id):
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
-        WHERE tgt.id = %(lang_id)s
+        WHERE nps.target_lang_id = %(lang_id)s
         AND src.id != tgt.id  -- Exclude self-translations
     )
     SELECT DISTINCT
