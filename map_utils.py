@@ -144,19 +144,22 @@ def add_language_connections(m, df, selected_language_id=None):
                 locations=[source_coords, target_coords],
                 weight=2,
                 color='#4CAF50',
-                opacity=0.6,
-                popup=folium.Popup(popup_content, max_width=300)
+                opacity=0.6
             )
+            # Add popup to the line
+            popup = folium.Popup(popup_content, max_width=300)
+            line.add_child(popup)
             line.add_to(connections_group)
 
             # Add markers for connected languages with enhanced popup
-            folium.CircleMarker(
+            marker = folium.CircleMarker(
                 location=target_coords,
                 radius=8,
                 color="#4CAF50",
                 fill=True,
                 popup=folium.Popup(popup_content, max_width=300)
-            ).add_to(connections_group)
+            )
+            marker.add_to(connections_group)
 
     connections_group.add_to(m)
 
