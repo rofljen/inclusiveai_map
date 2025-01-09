@@ -12,9 +12,15 @@ def get_location_from_coordinates(lat, lon):
         downloaded = trafilatura.fetch_url(url)
         if downloaded:
             location_text = trafilatura.extract(downloaded)
-            return location_text.split(',')[0] if location_text else None
+            if location_text:
+                parts = [part.strip() for part in location_text.split(',')]
+                city = parts[0] if parts else None
+                # Usually the country is the last meaningful part
+                country = parts[-1].strip() if len(parts) > 1 else None
+                return city, country
     except Exception:
-        return None
+        return None, None
+    return None, None
 
 def get_language_details(language_id):
     """Fetch detailed information about a specific language."""
@@ -25,6 +31,7 @@ def get_language_details(language_id):
         ln.lang_name,
         ln.iso_code,
         ln.glottocode,
+        ln.speakers,
         lf.name as family_name,
         lf.id as family_id,
         ls.name as subfamily_name,
@@ -85,12 +92,20 @@ def render_language_info_page(language_id):
         col1, col2 = st.columns(2)
         with col1:
             if pd.notna(details['latitude']) and pd.notna(details['longitude']):
-                location = get_location_from_coordinates(details['latitude'], details['longitude'])
-                if location:
-                    st.markdown(f"**Location:** {location}")
+                city, country = get_location_from_coordinates(details['latitude'], details['longitude'])
+                location_text = []
+                if city:
+                    location_text.append(city)
+                if country:
+                    location_text.append(country)
+                if location_text:
+                    st.markdown(f"**Location:** {', '.join(location_text)}")
                 else:
                     st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
+
             st.markdown(f"**Glotto Code:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}")
+            if pd.notna(details['speakers']):
+                st.markdown(f"**Number of Speakers:** {details['speakers']:,}")
 
         # Language Classification
         with col2:
@@ -131,7 +146,17 @@ def render_language_info_page(language_id):
         nmt_pairs = get_language_nmt_pairs(language_id)
         if not nmt_pairs.empty:
             st.header("Translation Pairs")
+
+            # Add summary statistics
+            st.markdown("### Overview")
+            st.markdown(f"""
+            - **Total Translation Pairs:** {len(nmt_pairs)}
+            - **Average chrF++ Score:** {nmt_pairs['chrf_score'].mean():.2f}
+            - **Average BLEU Score:** {nmt_pairs['bleu_score'].mean():.2f}
+            """)
+
             # Display the pairs table with formatting
+            st.markdown("### Detailed Pairs")
             st.dataframe(
                 nmt_pairs.style.format({
                     'chrf_score': '{:.2f}',
