@@ -124,7 +124,7 @@ def add_language_connections(m, df, selected_language_id=None):
     for idx, target_coords in enumerate(selected_lang['connected_coords']):
         if isinstance(target_coords, (list, np.ndarray)) and len(target_coords) == 2:
             # Get the connected language name and scores
-            connected_lang_name = selected_lang['connected_languages'].split(', ')[idx] if idx < len(selected_lang['connected_languages'].split(', ')) else 'Unknown'
+            connected_lang_name = selected_lang['connected_languages'][idx] if isinstance(selected_lang.get('connected_languages'), (list, np.ndarray)) and idx < len(selected_lang['connected_languages']) else 'Unknown'
 
             # Get scores for this pair
             pair_data = {
