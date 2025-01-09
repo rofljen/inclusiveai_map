@@ -109,14 +109,20 @@ def get_language_nmt_pairs(language_id):
     with get_db_session() as connection:
         query = """
         SELECT DISTINCT
-            src.lang_name as source_language,
-            tgt.lang_name as target_language,
+            CASE 
+                WHEN nps.source_lang_id = :lang_id THEN src.lang_name 
+                ELSE tgt.lang_name 
+            END as source_language,
+            CASE 
+                WHEN nps.source_lang_id = :lang_id THEN tgt.lang_name 
+                ELSE src.lang_name 
+            END as target_language,
             nps.chrf_plus as chrf_score,
             nps.spbleu_spm_200 as bleu_score
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
-        WHERE nps.source_lang_id = :lang_id
+        WHERE (nps.source_lang_id = :lang_id OR nps.target_lang_id = :lang_id)
         ORDER BY nps.chrf_plus DESC NULLS LAST;
         """
         return pd.read_sql(text(query), connection, params={'lang_id': language_id})
