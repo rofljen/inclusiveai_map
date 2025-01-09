@@ -108,26 +108,16 @@ def get_language_nmt_pairs(language_id):
     """Get NMT pairs for a specific language."""
     with get_db_session() as connection:
         query = """
-        WITH language_pairs AS (
-            -- Get pairs where the language is the source
-            SELECT DISTINCT
-                src.lang_name as source_language,
-                tgt.lang_name as target_language,
-                nps.chrf_plus as chrf_score,
-                nps.spbleu_spm_200 as bleu_score
-            FROM nmt_pairs_source nps
-            JOIN language_new src ON nps.source_lang_id = src.id
-            JOIN language_new tgt ON nps.target_lang_id = tgt.id
-            WHERE nps.source_lang_id = :lang_id
-            AND nps.source_lang_id != nps.target_lang_id  -- Exclude self-translations
-        )
-        SELECT
-            source_language,
-            target_language,
-            chrf_score,
-            bleu_score
-        FROM language_pairs
-        ORDER BY chrf_score DESC NULLS LAST;
+        SELECT DISTINCT
+            src.lang_name as source_language,
+            tgt.lang_name as target_language,
+            nps.chrf_plus as chrf_score,
+            nps.spbleu_spm_200 as bleu_score
+        FROM nmt_pairs_source nps
+        JOIN language_new src ON nps.source_lang_id = src.id
+        JOIN language_new tgt ON nps.target_lang_id = tgt.id
+        WHERE nps.source_lang_id = :lang_id
+        ORDER BY nps.chrf_plus DESC NULLS LAST;
         """
         return pd.read_sql(text(query), connection, params={'lang_id': language_id})
 
@@ -136,7 +126,7 @@ def get_all_nmt_pairs():
     """Get all NMT pairs with their scores."""
     with get_db_session() as connection:
         query = """
-        SELECT 
+        SELECT DISTINCT
             src.lang_name as source_language,
             tgt.lang_name as target_language,
             nps.chrf_plus as chrf_score,
@@ -144,6 +134,6 @@ def get_all_nmt_pairs():
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
-        ORDER BY nps.chrf_plus DESC NULLS LAST
+        ORDER BY nps.chrf_plus DESC NULLS LAST;
         """
         return pd.read_sql(query, connection)
