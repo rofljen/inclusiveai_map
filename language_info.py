@@ -87,25 +87,47 @@ def render_language_info_page(language_id):
             if not nmt_pairs.empty:
                 st.header("Neural Machine Translation Pairs")
 
-                # Display total number of pairs
-                st.markdown(f"**Total Translation Pairs:** {len(nmt_pairs)}")
-
-                # Create expander for detailed pairs information
-                with st.expander("View All Translation Pairs", expanded=True):
-                    # Create a formatted table for pairs
-                    for _, pair in nmt_pairs.iterrows():
-                        st.markdown(f"""
-                        ##### {pair['source_language']} ↔ {pair['target_language']}
-                        - **chrF++ Score:** {pair['chrf_score']:.2f}
-                        - **BLEU Score:** {pair['bleu_score']:.2f}
-                        ---
-                        """)
+                # Display total number of pairs and summary statistics
+                st.markdown(f"""
+                ### Overview
+                - **Total Translation Pairs:** {len(nmt_pairs)}
+                - **Average chrF++ Score:** {nmt_pairs['chrf_score'].mean():.2f}
+                - **Average BLEU Score:** {nmt_pairs['bleu_score'].mean():.2f}
+                - **Best Performing Pair:** {nmt_pairs.iloc[0]['source_language']} ↔ {nmt_pairs.iloc[0]['target_language']} 
+                  (chrF++: {nmt_pairs.iloc[0]['chrf_score']:.2f}, BLEU: {nmt_pairs.iloc[0]['bleu_score']:.2f})
+                """)
 
                 # Create tabs for different views
-                tabs = st.tabs(["Table View", "Chart View"])
+                tabs = st.tabs(["Detailed View", "Table View", "Chart View"])
 
                 with tabs[0]:
-                    # Table view
+                    # Create a grid layout for pairs
+                    for _, pair in nmt_pairs.iterrows():
+                        with st.container():
+                            st.markdown(f"""
+                            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                                <h4 style="color: #2c3e50; margin-bottom: 10px;">
+                                    {pair['source_language']} ↔ {pair['target_language']}
+                                </h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div>
+                                        <strong>chrF++ Score</strong>
+                                        <div style="font-size: 24px; color: {'#4CAF50' if pair['chrf_score'] >= 30 else '#FFA726' if pair['chrf_score'] >= 20 else '#EF5350'}">
+                                            {pair['chrf_score']:.2f}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong>BLEU Score</strong>
+                                        <div style="font-size: 24px; color: {'#4CAF50' if pair['bleu_score'] >= 15 else '#FFA726' if pair['bleu_score'] >= 10 else '#EF5350'}">
+                                            {pair['bleu_score']:.2f}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
+                with tabs[1]:
+                    # Enhanced table view with formatting
                     st.dataframe(
                         nmt_pairs.style.format({
                             'chrf_score': '{:.2f}',
@@ -117,17 +139,37 @@ def render_language_info_page(language_id):
                         use_container_width=True
                     )
 
-                with tabs[1]:
-                    # Chart view
-                    st.bar_chart(
-                        nmt_pairs.set_index('target_language')['chrf_score'],
-                        use_container_width=True
-                    )
+                with tabs[2]:
+                    # Create two columns for charts
+                    chart_col1, chart_col2 = st.columns(2)
 
-                # Map showing connections
-                st.header("Translation Connections Map")
-                df = load_language_data()
-                display_map(df, selected_models=['NMT'], selected_language_id=language_id)
+                    with chart_col1:
+                        st.subheader("chrF++ Scores")
+                        st.bar_chart(
+                            nmt_pairs.set_index('target_language')['chrf_score'],
+                            use_container_width=True
+                        )
+
+                    with chart_col2:
+                        st.subheader("BLEU Scores")
+                        st.bar_chart(
+                            nmt_pairs.set_index('target_language')['bleu_score'],
+                            use_container_width=True
+                        )
+
+                # Add download functionality
+                st.download_button(
+                    "Download Pairs Data as CSV",
+                    nmt_pairs.to_csv(index=False).encode('utf-8'),
+                    f"nmt_pairs_{language_id}.csv",
+                    "text/csv",
+                    key='download-pairs'
+                )
+
+            # Map showing connections
+            st.header("Translation Connections Map")
+            df = load_language_data()
+            display_map(df, selected_models=['NMT'], selected_language_id=language_id)
 
         with col2:
             # Model Support Section
