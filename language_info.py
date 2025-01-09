@@ -1,28 +1,20 @@
 import streamlit as st
 import pandas as pd
-from database import get_database_connection, get_language_nmt_pairs, load_language_data
-from map_utils import display_map
+from database import get_database_connection, get_language_nmt_pairs
 
 def get_language_details(language_id):
     """Fetch detailed information about a specific language."""
     engine = get_database_connection()
     query = """
     SELECT 
-        ln.*,
-        lf.name as family_name,
-        lf.id as family_id,
-        ls.name as subfamily_name,
-        ls.id as subfamily_id,
-        ARRAY[
-            CASE WHEN ln.asr THEN 'ASR' END,
-            CASE WHEN ln.nmt THEN 'NMT' END,
-            CASE WHEN ln.tts THEN 'TTS' END
-        ] as available_models,
+        ln.id,
+        ln.lang_name,
+        ln.iso_code,
+        ln.glotto_code,
+        ln.city,
         ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
         ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
     FROM language_new ln
-    LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
-    LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
     WHERE ln.id = %(lang_id)s
     """
     try:
@@ -61,37 +53,24 @@ def render_language_info_page(language_id):
             st.error("Language not found")
             return
 
-        # Page title and header
-        st.title(f"{details['lang_name']} Language Details")
+        # Page title
+        st.title(f"{details['lang_name']}")
 
         # Basic Information Section
-        st.header("Basic Information")
-        st.markdown(f"""
-        **ISO Code:** {details['iso_code'] if pd.notna(details['iso_code']) else 'N/A'}  
-        """)
-
-        # Language Classification Section
-        st.header("Language Classification")
-        if pd.notna(details['family_name']):
-            st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
-        if pd.notna(details['subfamily_name']):
-            st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
+        col1, col2 = st.columns(2)
+        with col1:
+            if pd.notna(details['city']):
+                st.markdown(f"**Location:** {details['city']}")
+            elif pd.notna(details['latitude']) and pd.notna(details['longitude']):
+                st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
+        with col2:
+            st.markdown(f"**Glotto Code:** {details['glotto_code'] if pd.notna(details['glotto_code']) else 'N/A'}")
 
         # NMT Pairs Section
         nmt_pairs = get_language_nmt_pairs(language_id)
         if not nmt_pairs.empty:
-            st.header("Neural Machine Translation Pairs")
-
-            # Summary statistics
-            st.markdown(f"""
-            ### Overview
-            - **Total Translation Pairs:** {len(nmt_pairs)}
-            - **Average chrF++ Score:** {nmt_pairs['chrf_score'].mean():.2f}
-            - **Average BLEU Score:** {nmt_pairs['bleu_score'].mean():.2f}
-            """)
-
-            # Enhanced table view with formatting
-            st.markdown("### Translation Pairs")
+            st.header("Translation Pairs")
+            # Display the pairs table with formatting
             st.dataframe(
                 nmt_pairs.style.format({
                     'chrf_score': '{:.2f}',
@@ -105,7 +84,7 @@ def render_language_info_page(language_id):
 
             # Add download functionality
             st.download_button(
-                "Download Pairs Data as CSV",
+                "Download as CSV",
                 nmt_pairs.to_csv(index=False).encode('utf-8'),
                 f"nmt_pairs_{language_id}.csv",
                 "text/csv",
@@ -113,7 +92,6 @@ def render_language_info_page(language_id):
             )
 
         # Back button
-        st.markdown("---")
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
             st.rerun()
