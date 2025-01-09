@@ -47,7 +47,9 @@ def load_language_data():
                         AND ST_X(l2.coordinates::geometry) BETWEEN -180 AND 180
                         AND ST_Y(l2.coordinates::geometry) BETWEEN -90 AND 90
                     ) as connected_coords,
-                    array_agg(DISTINCT l2.id) as connected_lang_ids
+                    array_agg(DISTINCT l2.id) as connected_lang_ids,
+                    array_agg(DISTINCT nps.chrf_plus ORDER BY l2.lang_name) as chrf_scores,
+                    array_agg(DISTINCT nps.spbleu_spm_200 ORDER BY l2.lang_name) as bleu_scores
                 FROM language_new l1
                 JOIN nmt_pairs_source nps ON l1.id = nps.source_lang_id OR l1.id = nps.target_lang_id
                 JOIN language_new l2 ON 
@@ -74,6 +76,8 @@ def load_language_data():
                 COALESCE(lc.connected_languages, '') as connected_languages,
                 COALESCE(lc.connected_coords, ARRAY[]::float[][]) as connected_coords,
                 COALESCE(lc.connected_lang_ids, ARRAY[]::integer[]) as connected_lang_ids,
+                COALESCE(lc.chrf_scores, ARRAY[]::float[]) as chrf_scores,
+                COALESCE(lc.bleu_scores, ARRAY[]::float[]) as bleu_scores,
                 CASE WHEN lc.lang_id IS NOT NULL THEN TRUE ELSE FALSE END as has_nmt_pair
             FROM language_new l
             LEFT JOIN lang_connections lc ON l.id = lc.lang_id

@@ -78,6 +78,31 @@ def create_model_indicator_html(available_models, selected_models):
     '></div>
     """
 
+def create_pair_popup_content(source_lang, target_lang, pair_data):
+    """Create HTML content for NMT pair popup."""
+    return f"""
+    <div style='min-width: 200px; padding: 10px;'>
+        <h4 style='margin-bottom: 10px; color: #2c3e50;'>Translation Pair Details</h4>
+        <div style='margin-bottom: 15px;'>
+            <strong>Source:</strong> {source_lang}<br>
+            <strong>Target:</strong> {target_lang}
+        </div>
+        <div style='background: #f8f9fa; padding: 10px; border-radius: 4px;'>
+            <div style='margin-bottom: 8px;'>
+                <strong>Quality Metrics:</strong>
+            </div>
+            <div style='display: flex; justify-content: space-between;'>
+                <span>chrF++ Score:</span>
+                <span>{pair_data.get('chrf_score', 'N/A'):.2f}</span>
+            </div>
+            <div style='display: flex; justify-content: space-between;'>
+                <span>BLEU Score:</span>
+                <span>{pair_data.get('bleu_score', 'N/A'):.2f}</span>
+            </div>
+        </div>
+    </div>
+    """
+
 def add_language_connections(m, df, selected_language_id=None):
     """Add lines connecting languages that have NMT pairs."""
     if selected_language_id is None:
@@ -98,26 +123,39 @@ def add_language_connections(m, df, selected_language_id=None):
     # Add lines for each connection
     for idx, target_coords in enumerate(selected_lang['connected_coords']):
         if isinstance(target_coords, (list, np.ndarray)) and len(target_coords) == 2:
-            # Get the connected language name
+            # Get the connected language name and scores
             connected_lang_name = selected_lang['connected_languages'].split(', ')[idx] if idx < len(selected_lang['connected_languages'].split(', ')) else 'Unknown'
 
-            # Create a line with animation
+            # Get scores for this pair
+            pair_data = {
+                'chrf_score': selected_lang['chrf_scores'][idx] if isinstance(selected_lang.get('chrf_scores'), (list, np.ndarray)) and idx < len(selected_lang['chrf_scores']) else 0.0,
+                'bleu_score': selected_lang['bleu_scores'][idx] if isinstance(selected_lang.get('bleu_scores'), (list, np.ndarray)) and idx < len(selected_lang['bleu_scores']) else 0.0
+            }
+
+            # Create popup content
+            popup_content = create_pair_popup_content(
+                selected_lang['name'],
+                connected_lang_name,
+                pair_data
+            )
+
+            # Create a line with animation and enhanced popup
             line = plugins.AntPath(
                 locations=[source_coords, target_coords],
                 weight=2,
                 color='#4CAF50',
                 opacity=0.6,
-                popup=f"NMT Pair: {selected_lang['name']} ↔ {connected_lang_name}"
+                popup=folium.Popup(popup_content, max_width=300)
             )
             line.add_to(connections_group)
 
-            # Add markers for connected languages
+            # Add markers for connected languages with enhanced popup
             folium.CircleMarker(
                 location=target_coords,
                 radius=8,
                 color="#4CAF50",
                 fill=True,
-                popup=f"Connected: {connected_lang_name}"
+                popup=folium.Popup(popup_content, max_width=300)
             ).add_to(connections_group)
 
     connections_group.add_to(m)
