@@ -42,11 +42,7 @@ def get_language_details(language_id):
         ln.nmt_url,
         ln.tts_url,
         ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
-        ST_X(ST_AsText(ln.coordinates::geometry)) as longitude,
-        ln.lang_code,
-        ln.description,
-        ln.endangered_level,
-        ln.last_updated
+        ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
     FROM language_new ln
     LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
     LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
@@ -91,13 +87,11 @@ def render_language_info_page(language_id):
         # Create a card-like container for the header
         with st.container():
             st.title(f"{details['lang_name']}")
-            if pd.notna(details.get('description')):
-                st.markdown(details['description'])
             st.markdown("---")
 
         # Basic Information Section
         st.header("📋 Basic Information")
-        col1, col2, col3 = st.columns([1, 1, 1])
+        col1, col2 = st.columns([1, 1])
 
         with col1:
             st.markdown("##### 🌐 Location")
@@ -112,21 +106,17 @@ def render_language_info_page(language_id):
                     st.markdown(f"**Region:** {', '.join(location_text)}")
                 st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
 
+            if pd.notna(details['iso_code']):
+                st.markdown(f"**ISO Code:** {details['iso_code']}")
+            if pd.notna(details['glottocode']):
+                st.markdown(f"**Glotto Code:** {details['glottocode']}")
+
         with col2:
             st.markdown("##### 🏷️ Classification")
             if pd.notna(details['family_name']):
                 st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
             if pd.notna(details['subfamily_name']):
                 st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
-
-        with col3:
-            st.markdown("##### 🔍 Identifiers")
-            if pd.notna(details['iso_code']):
-                st.markdown(f"**ISO Code:** {details['iso_code']}")
-            if pd.notna(details['glottocode']):
-                st.markdown(f"**Glotto Code:** {details['glottocode']}")
-            if pd.notna(details['lang_code']):
-                st.markdown(f"**Language Code:** {details['lang_code']}")
 
         st.markdown("---")
 
@@ -203,11 +193,6 @@ def render_language_info_page(language_id):
                 "text/csv",
                 key='download-pairs'
             )
-
-        # Meta Information
-        if pd.notna(details.get('last_updated')):
-            st.markdown("---")
-            st.markdown(f"*Last Updated: {details['last_updated']}*")
 
         # Navigation
         st.markdown("---")
