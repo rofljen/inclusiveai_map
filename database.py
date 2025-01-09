@@ -116,7 +116,8 @@ def get_language_nmt_pairs(language_id):
         FROM nmt_pairs_source nps
         JOIN language_new src ON nps.source_lang_id = src.id
         JOIN language_new tgt ON nps.target_lang_id = tgt.id
-        WHERE nps.source_lang_id = :lang_id OR nps.target_lang_id = :lang_id
+        WHERE (src.id = :lang_id OR tgt.id = :lang_id)
+        AND src.id != tgt.id  -- Exclude self-translations
         ORDER BY nps.chrf_plus DESC NULLS LAST
         """
         return pd.read_sql(text(query), connection, params={'lang_id': language_id})
