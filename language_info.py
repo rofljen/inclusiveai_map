@@ -42,7 +42,11 @@ def get_language_details(language_id):
         ln.nmt_url,
         ln.tts_url,
         ST_Y(ST_AsText(ln.coordinates::geometry)) as latitude,
-        ST_X(ST_AsText(ln.coordinates::geometry)) as longitude
+        ST_X(ST_AsText(ln.coordinates::geometry)) as longitude,
+        ln.lang_code,
+        ln.description,
+        ln.endangered_level,
+        ln.last_updated
     FROM language_new ln
     LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
     LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
@@ -84,12 +88,19 @@ def render_language_info_page(language_id):
             st.error("Language not found")
             return
 
-        # Page title
-        st.title(f"{details['lang_name']}")
+        # Create a card-like container for the header
+        with st.container():
+            st.title(f"{details['lang_name']}")
+            if pd.notna(details.get('description')):
+                st.markdown(details['description'])
+            st.markdown("---")
 
         # Basic Information Section
-        col1, col2 = st.columns(2)
+        st.header("📋 Basic Information")
+        col1, col2, col3 = st.columns([1, 1, 1])
+
         with col1:
+            st.markdown("##### 🌐 Location")
             if pd.notna(details['latitude']) and pd.notna(details['longitude']):
                 city, country = get_location_from_coordinates(details['latitude'], details['longitude'])
                 location_text = []
@@ -98,62 +109,81 @@ def render_language_info_page(language_id):
                 if country:
                     location_text.append(country)
                 if location_text:
-                    st.markdown(f"**Location:** {', '.join(location_text)}")
-                else:
-                    st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
+                    st.markdown(f"**Region:** {', '.join(location_text)}")
+                st.markdown(f"**Coordinates:** ({details['latitude']:.2f}, {details['longitude']:.2f})")
 
-            st.markdown(f"**Glotto Code:** {details['glottocode'] if pd.notna(details['glottocode']) else 'N/A'}")
-
-        # Language Classification
         with col2:
+            st.markdown("##### 🏷️ Classification")
             if pd.notna(details['family_name']):
                 st.markdown(f"**Family:** [{details['family_name']}](?family_id={details['family_id']})")
             if pd.notna(details['subfamily_name']):
                 st.markdown(f"**Subfamily:** [{details['subfamily_name']}](?subfamily_id={details['subfamily_id']})")
 
-        # Model Availability Section
-        st.header("Available Models")
-        model_col1, model_col2, model_col3 = st.columns(3)
+        with col3:
+            st.markdown("##### 🔍 Identifiers")
+            if pd.notna(details['iso_code']):
+                st.markdown(f"**ISO Code:** {details['iso_code']}")
+            if pd.notna(details['glottocode']):
+                st.markdown(f"**Glotto Code:** {details['glottocode']}")
+            if pd.notna(details['lang_code']):
+                st.markdown(f"**Language Code:** {details['lang_code']}")
 
-        with model_col1:
+        st.markdown("---")
+
+        # Model Availability Section with improved layout
+        st.header("🤖 Language Technology")
+
+        # Create three columns for each model type
+        tech_col1, tech_col2, tech_col3 = st.columns(3)
+
+        with tech_col1:
+            st.markdown("##### Speech Recognition (ASR)")
             if details['asr']:
-                st.success("🎙️ ASR Available")
+                st.success("✅ Available")
                 if pd.notna(details['asr_url']):
                     st.markdown(f"[Access ASR Model]({details['asr_url']})")
+                    st.markdown("Try the model to convert speech to text")
             else:
-                st.error("🎙️ ASR Not Available")
+                st.error("❌ Not Available")
 
-        with model_col2:
+        with tech_col2:
+            st.markdown("##### Machine Translation (NMT)")
             if details['nmt']:
-                st.success("🔄 NMT Available")
+                st.success("✅ Available")
                 if pd.notna(details['nmt_url']):
                     st.markdown(f"[Access NMT Model]({details['nmt_url']})")
+                    st.markdown("Try the model to translate text")
             else:
-                st.error("🔄 NMT Not Available")
+                st.error("❌ Not Available")
 
-        with model_col3:
+        with tech_col3:
+            st.markdown("##### Text-to-Speech (TTS)")
             if details['tts']:
-                st.success("🔊 TTS Available")
+                st.success("✅ Available")
                 if pd.notna(details['tts_url']):
                     st.markdown(f"[Access TTS Model]({details['tts_url']})")
+                    st.markdown("Try the model to generate speech")
             else:
-                st.error("🔊 TTS Not Available")
+                st.error("❌ Not Available")
 
-        # NMT Pairs Section
+        st.markdown("---")
+
+        # NMT Pairs Section with enhanced visualization
         nmt_pairs = get_language_nmt_pairs(language_id)
         if not nmt_pairs.empty:
-            st.header("Translation Pairs")
+            st.header("🔄 Translation Pairs")
 
-            # Add summary statistics
-            st.markdown("### Overview")
-            st.markdown(f"""
-            - **Total Translation Pairs:** {len(nmt_pairs)}
-            - **Average chrF++ Score:** {nmt_pairs['chrf_score'].mean():.2f}
-            - **Average BLEU Score:** {nmt_pairs['bleu_score'].mean():.2f}
-            """)
+            # Summary metrics
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            with metric_col1:
+                st.metric("Total Pairs", len(nmt_pairs))
+            with metric_col2:
+                st.metric("Avg chrF++ Score", f"{nmt_pairs['chrf_score'].mean():.2f}")
+            with metric_col3:
+                st.metric("Avg BLEU Score", f"{nmt_pairs['bleu_score'].mean():.2f}")
 
-            # Display the pairs table with formatting
-            st.markdown("### Detailed Pairs")
+            # Display detailed pairs with enhanced formatting
+            st.markdown("### Translation Pair Details")
             st.dataframe(
                 nmt_pairs.style.format({
                     'chrf_score': '{:.2f}',
@@ -167,14 +197,20 @@ def render_language_info_page(language_id):
 
             # Add download functionality
             st.download_button(
-                "Download as CSV",
+                "📥 Download Translation Pairs Data",
                 nmt_pairs.to_csv(index=False).encode('utf-8'),
-                f"nmt_pairs_{language_id}.csv",
+                f"translation_pairs_{details['lang_name'].lower().replace(' ', '_')}.csv",
                 "text/csv",
                 key='download-pairs'
             )
 
-        # Back button
+        # Meta Information
+        if pd.notna(details.get('last_updated')):
+            st.markdown("---")
+            st.markdown(f"*Last Updated: {details['last_updated']}*")
+
+        # Navigation
+        st.markdown("---")
         if st.button("← Back to Map"):
             st.session_state.selected_language = None
             st.rerun()
