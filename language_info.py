@@ -10,16 +10,40 @@ def get_language_nmt_pairs(language_id):
     """Get NMT pairs for a specific language."""
     engine = get_database_connection()
     query = """
-    SELECT 
-        src.lang_name as source_language,
-        tgt.lang_name as target_language,
-        nps.chrf_plus as chrf_score,
-        nps.spbleu_spm_200 as bleu_score
-    FROM nmt_pairs_source nps
-    JOIN language_new src ON nps.source_lang_id = src.id
-    JOIN language_new tgt ON nps.target_lang_id = tgt.id
-    WHERE src.id = %(lang_id)s OR tgt.id = %(lang_id)s
-    ORDER BY nps.chrf_plus DESC NULLS LAST
+    WITH language_pairs AS (
+        -- Get pairs where the language is the source
+        SELECT 
+            src.lang_name as source_language,
+            tgt.lang_name as target_language,
+            nps.chrf_plus as chrf_score,
+            nps.spbleu_spm_200 as bleu_score,
+            'source' as pair_type
+        FROM nmt_pairs_source nps
+        JOIN language_new src ON nps.source_lang_id = src.id
+        JOIN language_new tgt ON nps.target_lang_id = tgt.id
+        WHERE src.id = %(lang_id)s
+
+        UNION ALL
+
+        -- Get pairs where the language is the target
+        SELECT 
+            src.lang_name as source_language,
+            tgt.lang_name as target_language,
+            nps.chrf_plus as chrf_score,
+            nps.spbleu_spm_200 as bleu_score,
+            'target' as pair_type
+        FROM nmt_pairs_source nps
+        JOIN language_new src ON nps.source_lang_id = src.id
+        JOIN language_new tgt ON nps.target_lang_id = tgt.id
+        WHERE tgt.id = %(lang_id)s
+    )
+    SELECT DISTINCT
+        source_language,
+        target_language,
+        chrf_score,
+        bleu_score
+    FROM language_pairs
+    ORDER BY chrf_score DESC NULLS LAST;
     """
     return pd.read_sql_query(query, engine, params={'lang_id': language_id})
 
