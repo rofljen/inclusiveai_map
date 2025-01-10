@@ -10,25 +10,31 @@ def get_language_nmt_pairs(language_id):
     """Get NMT pairs for a specific language."""
     engine = get_database_connection()
     query = """
-    WITH selected_lang AS (
-        SELECT lang_name 
-        FROM language_new 
-        WHERE id = %(lang_id)s
-    )
-    SELECT DISTINCT
-        src.lang_name as source_language,
-        tgt.lang_name as target_language,
+    SELECT 
         nps.chrf_plus as chrf_score,
         nps.spbleu_spm_200 as bleu_score,
+        source_lang.lang_name AS source_language,
+        target_lang.lang_name AS target_language,
         CASE 
-            WHEN src.id = %(lang_id)s THEN 'Source'
+            WHEN source_lang.id = %(lang_id)s THEN 'Source'
             ELSE 'Target'
         END as role
-    FROM nmt_pairs_source nps
-    JOIN language_new src ON nps.source_lang_id = src.id
-    JOIN language_new tgt ON nps.target_lang_id = tgt.id
-    WHERE src.id = %(lang_id)s OR tgt.id = %(lang_id)s
-    ORDER BY role, nps.chrf_plus DESC NULLS LAST;
+    FROM 
+        nmt_pairs_source nps
+    LEFT JOIN 
+        language_new AS source_lang 
+    ON 
+        nps.source_lang_id = source_lang.id
+    LEFT JOIN 
+        language_new AS target_lang 
+    ON 
+        nps.target_lang_id = target_lang.id
+    WHERE 
+        nps.source_lang_id IS NOT NULL
+        AND nps.target_lang_id IS NOT NULL
+        AND (source_lang.id = %(lang_id)s OR target_lang.id = %(lang_id)s)
+    ORDER BY 
+        role, nps.chrf_plus DESC NULLS LAST;
     """
     return pd.read_sql_query(query, engine, params={'lang_id': language_id})
 
