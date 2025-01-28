@@ -1,0 +1,13 @@
+streamlit
+streamlit-folium
+psycopg2-binary
+sqlalchemy
+geoalchemy2
+folium
+pandas
+numpy
+altair
+trafilatura
+twilio
+openai
+gunicorn
