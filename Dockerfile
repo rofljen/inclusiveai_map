@@ -38,6 +38,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
 
+# Create the config directory and add the config file
+USER root
+RUN mkdir -p /app/.streamlit
+RUN echo "\
+[server]\n\
+port = 8000\n\
+address = \"0.0.0.0\"\n\
+enableCORS = false\n\
+enableXsrfProtection = false\n\
+[browser]\n\
+gatherUsageStats = false\n\
+" > /app/.streamlit/config.toml
+
 # Switch to the non-privileged user to run the application.
 USER appuser
 
@@ -48,4 +61,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD gunicorn '.cache.uv.archive-v0.H4b2-aKWBSS7Ns3b1oIPy.httpx._transports.wsgi' --bind=0.0.0.0:8000
+CMD ["streamlit", "run", "--server.port", "8000", "--server.address", "0.0.0.0", "main.py"]
