@@ -19,13 +19,17 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function Map() {
-  const position: [number, number] = [37.7749, -122.4194]; // San Francisco coordinates
+interface MapProps {
+  selectedModels?: string[];
+}
+
+export default function Map({ selectedModels }: MapProps) {
+  const position: [number, number] = [20, 0]; // World view coordinates
 
   return (
     <MapContainer
       center={position}
-      zoom={13}
+      zoom={2}
       scrollWheelZoom={true}
       style={{ height: "100%", width: "100%", minHeight: "400px" }}
     >
@@ -33,11 +37,6 @@ export default function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker position={position}>
-        <Popup>
-          San Francisco <br /> The tech hub of the world.
-        </Popup>
-      </Marker>
     </MapContainer>
   );
 }

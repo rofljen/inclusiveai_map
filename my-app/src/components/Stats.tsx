@@ -1,0 +1,26 @@
+"use client";
+
+interface StatsProps {
+  totalLanguages: number;
+  totalModels: number;
+  languagesWithModels: number;
+}
+
+export function Stats({ totalLanguages, totalModels, languagesWithModels }: StatsProps) {
+  return (
+    <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="p-4 rounded-lg bg-white shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500">Total Languages</h3>
+        <p className="mt-2 text-3xl font-semibold">{totalLanguages}</p>
+      </div>
+      <div className="p-4 rounded-lg bg-white shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500">Total Model Implementations</h3>
+        <p className="mt-2 text-3xl font-semibold">{totalModels}</p>
+      </div>
+      <div className="p-4 rounded-lg bg-white shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500">Languages with Models</h3>
+        <p className="mt-2 text-3xl font-semibold">{languagesWithModels}</p>
+      </div>
+    </div>
+  );
+}
