@@ -1,4 +1,5 @@
 import { LanguageData } from "@/types";
+import { TranslationPair } from "./translationPairs";
 
 export const sampleLanguages: LanguageData[] = [
   {
@@ -30,5 +31,64 @@ export const sampleLanguages: LanguageData[] = [
     available_models: ["ASR"],
     nmt_pair_count: 0,
     connected_languages: ""
+  }
+];
+
+export const sampleTranslationPairs: TranslationPair[] = [
+  {
+    id: 1,
+    chrf_score: 46.80,
+    bleu_score: 28.60,
+    source_language: 'Amharic',
+    target_language: 'Tamil',
+    role: 'Source'
+  },
+  {
+    id: 2,
+    chrf_score: 45.80,
+    bleu_score: 27.80,
+    source_language: 'Amharic',
+    target_language: 'Hindi',
+    role: 'Source'
+  },
+  {
+    id: 3,
+    chrf_score: 45.60,
+    bleu_score: 30.30,
+    source_language: 'Amharic',
+    target_language: 'Telugu',
+    role: 'Source'
+  },
+  {
+    id: 4,
+    chrf_score: 45.20,
+    bleu_score: 29.70,
+    source_language: 'Amharic',
+    target_language: 'Kannada',
+    role: 'Source'
+  },
+  {
+    id: 5,
+    chrf_score: 44.50,
+    bleu_score: 21.90,
+    source_language: 'Amharic',
+    target_language: 'Zulu',
+    role: 'Source'
+  },
+  {
+    id: 6,
+    chrf_score: 44.20,
+    bleu_score: 20.70,
+    source_language: 'Amharic',
+    target_language: 'Hausa',
+    role: 'Source'
+  },
+  {
+    id: 7,
+    chrf_score: 43.60,
+    bleu_score: 29.10,
+    source_language: 'Amharic',
+    target_language: 'Malayalam',
+    role: 'Source'
   }
 ];

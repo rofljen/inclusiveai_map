@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { sampleLanguages } from "@/data/sampleData";
+import { sampleLanguages, sampleTranslationPairs } from "@/data/sampleData";
 
 interface TabProps {
   label: string;
@@ -24,6 +24,8 @@ function Tab({ label, isActive, onClick }: TabProps) {
     </button>
   );
 }
+
+import TranslationPairs from "@/components/TranslationPairs";
 
 export default function LanguageDetails({
   params,
@@ -139,33 +141,7 @@ export default function LanguageDetails({
 
       {activeTab === "pairs" && (
         <div className="space-y-6">
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Translation Pairs</h2>
-            {language.nmt_pair_count > 0 ? (
-              <div className="bg-white rounded-lg shadow">
-                <div className="p-4">
-                  <p>
-                    This language has {language.nmt_pair_count} translation pairs.
-                  </p>
-                  <div className="mt-4">
-                    <h3 className="font-medium mb-2">Connected Languages:</h3>
-                    <div className="space-y-1">
-                      {language.connected_languages?.split(", ").map((lang) => (
-                        <div
-                          key={lang}
-                          className="flex items-center gap-2 text-gray-700"
-                        >
-                          • {lang}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p>No translation pairs available for this language.</p>
-            )}
-          </section>
+          <TranslationPairs pairs={sampleTranslationPairs} />
         </div>
       )}
     </main>
