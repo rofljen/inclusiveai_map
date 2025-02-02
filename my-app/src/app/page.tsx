@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
 import { Stats } from "@/components/Stats";
 import { ModelFilters } from "@/components/ModelFilters";
+import { LanguageData } from "@/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -11,12 +12,43 @@ const Map = dynamic(() => import("@/components/Map"), {
 
 export default function Home() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<LanguageData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // TODO: Replace with actual API data
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetch('/api/languages');
+        if (!response.ok) {
+          throw new Error('Failed to fetch languages');
+        }
+        const data = await response.json();
+        setLanguages(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch languages');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLanguages();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+  }
+
   const stats = {
-    totalLanguages: 21,
-    totalModels: 25,
-    languagesWithModels: 16,
+    totalLanguages: languages.length,
+    totalModels: languages.reduce((sum, lang) => 
+      sum + (lang.available_models?.filter(Boolean).length || 0), 0),
+    languagesWithModels: languages.filter(lang => 
+      lang.available_models?.some(Boolean)).length,
   };
 
   return (
@@ -28,7 +60,7 @@ export default function Home() {
             <ModelFilters onFilterChange={setSelectedModels} />
           </div>
           <div className="col-span-3 rounded-lg border border-gray-200 shadow-sm h-[600px] bg-white">
-            <Map selectedModels={selectedModels} />
+            <Map languages={languages} selectedModels={selectedModels} />
           </div>
         </div>
       </div>
