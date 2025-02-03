@@ -2,7 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { sampleLanguages, sampleTranslationPairs } from "@/data/sampleData";
+import TranslationPairs from "@/components/TranslationPairs";
+
+// Default sample data
+const sampleLanguages = [
+  {
+    id: 1,
+    name: "English",
+    iso_code: "eng",
+    latitude: 51.5074,
+    longitude: -0.1278,
+    available_models: ["ASR", "NMT", "TTS"],
+    nmt_pair_count: 4,
+    family_name: "Indo-European",
+    subfamily_name: "Germanic"
+  }
+];
 
 interface TabProps {
   label: string;
@@ -25,19 +40,14 @@ function Tab({ label, isActive, onClick }: TabProps) {
   );
 }
 
-import TranslationPairs from "@/components/TranslationPairs";
-
 export default function LanguageDetails({
   params,
 }: {
   params: { id: string };
 }) {
   const [activeTab, setActiveTab] = useState("overview");
-  const language = sampleLanguages.find((l) => l.id === parseInt(params.id));
-
-  if (!language) {
-    return <div>Language not found</div>;
-  }
+  // Use sample data for now
+  const language = sampleLanguages[0];
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -97,15 +107,15 @@ export default function LanguageDetails({
                 </p>
                 <p className="text-gray-700">
                   <strong>Family:</strong>{" "}
-                  <Link href="#" className="text-blue-600 hover:underline">
-                    Indo-European
-                  </Link>
+                  <span className="text-blue-600">
+                    {language.family_name}
+                  </span>
                 </p>
                 <p className="text-gray-700">
                   <strong>Subfamily:</strong>{" "}
-                  <Link href="#" className="text-blue-600 hover:underline">
-                    Classical Indo-European
-                  </Link>
+                  <span className="text-blue-600">
+                    {language.subfamily_name}
+                  </span>
                 </p>
               </div>
             </section>
@@ -140,9 +150,7 @@ export default function LanguageDetails({
       )}
 
       {activeTab === "pairs" && (
-        <div className="space-y-6">
-          <TranslationPairs pairs={sampleTranslationPairs} />
-        </div>
+        <TranslationPairs />
       )}
     </main>
   );
