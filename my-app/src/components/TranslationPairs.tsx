@@ -1,6 +1,6 @@
 "use client";
 
-import { TranslationPair } from "@/types";
+import { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -10,186 +10,171 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
+import { TranslationPair } from '@/types';
 
-// Default sample data
-const defaultPairs: TranslationPair[] = [
-  {
-    source_language: "English",
-    target_language: "French",
-    chrf_score: 0.65,
-    bleu_score: 0.72,
-    role: "Source"
-  },
-  {
-    source_language: "English",
-    target_language: "Spanish",
-    chrf_score: 0.68,
-    bleu_score: 0.75,
-    role: "Source"
-  },
-  {
-    source_language: "German",
-    target_language: "English",
-    chrf_score: 0.62,
-    bleu_score: 0.70,
-    role: "Target"
-  },
-  {
-    source_language: "French",
-    target_language: "English",
-    chrf_score: 0.64,
-    bleu_score: 0.71,
-    role: "Target"
-  }
-];
-
-interface TranslationPairsProps {
-  pairs?: TranslationPair[];
-  sourceLang?: string;
+interface Props {
+  languageId: string;
+  languageName: string;
 }
 
-export default function TranslationPairs({ pairs = defaultPairs, sourceLang = "English" }: TranslationPairsProps) {
-  // Calculate averages
-  const avgChrfScore =
-    pairs.reduce((sum, pair) => sum + (pair.chrf_score || 0), 0) / pairs.length;
-  const avgBleuScore =
-    pairs.reduce((sum, pair) => sum + (pair.bleu_score || 0), 0) / pairs.length;
+export default function TranslationPairs({ languageId, languageName }: Props) {
+  const [pairs, setPairs] = useState<TranslationPair[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Prepare data for the chart
-  const chartData = pairs.map((pair) => ({
-    name: pair.role === 'Source' ? pair.target_language : pair.source_language,
-    chrf_score: pair.chrf_score,
-    bleu_score: pair.bleu_score,
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`/api/languages/${languageId}/translation-pairs`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch translation pairs');
+        }
+        const data = await response.json();
+        // Convert string scores to numbers if needed
+        const processedData = data.map((pair: any) => ({
+          ...pair,
+          chrf_score: Number(pair.chrf_score),
+          bleu_score: Number(pair.bleu_score)
+        }));
+        setPairs(processedData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [languageId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  // Safely calculate averages
+  const totalPairs = pairs.length;
+  const avgChrfScore = totalPairs > 0 
+    ? pairs.reduce((acc, pair) => acc + (pair.chrf_score || 0), 0) / totalPairs 
+    : 0;
+  const avgBleuScore = totalPairs > 0
+    ? pairs.reduce((acc, pair) => acc + (pair.bleu_score || 0), 0) / totalPairs
+    : 0;
+
+  // Prepare data for the chart, ensuring numbers
+  const chartData = pairs.map(pair => ({
+    target_language: pair.target_language,
+    chrf_score: Number(pair.chrf_score) || 0,
+    bleu_score: Number(pair.bleu_score) || 0
   }));
+
+  const formatScore = (score: number) => {
+    return typeof score === 'number' ? score.toFixed(2) : '0.00';
+  };
 
   return (
     <div className="space-y-8">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-700">Total Pairs</h3>
-          <p className="mt-2 text-3xl font-semibold text-black">{pairs.length}</p>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-800">Total Pairs</h3>
+          <p className="text-3xl font-bold text-blue-600">{totalPairs}</p>
         </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-700">Avg chrF++ Score</h3>
-          <p className="mt-2 text-3xl font-semibold text-black">
-            {avgChrfScore.toFixed(2)}
-          </p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-800">Avg chrF++ Score</h3>
+          <p className="text-3xl font-bold text-blue-600">{formatScore(avgChrfScore)}</p>
         </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-700">Avg BLEU Score</h3>
-          <p className="mt-2 text-3xl font-semibold text-black">
-            {avgBleuScore.toFixed(2)}
-          </p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-800">Avg BLEU Score</h3>
+          <p className="text-3xl font-bold text-blue-600">{formatScore(avgBleuScore)}</p>
         </div>
       </div>
 
       {/* Score Distribution Chart */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">
-          Translation Quality Scores by Language
-        </h3>
-        <div className="h-[400px]">
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Translation Quality Scores by Target Language</h3>
+        <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="name"
+                dataKey="target_language"
                 angle={-45}
                 textAnchor="end"
-                height={80}
-                interval={0}
+                height={60}
               />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="bleu_score" fill="#8884d8" name="BLEU Score" />
-              <Bar dataKey="chrf_score" fill="#82ca9d" name="chrF++ Score" />
+              <Bar dataKey="chrf_score" name="chrF++ Score" fill="#8884d8" />
+              <Bar dataKey="bleu_score" name="BLEU Score" fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Translation Pairs Tables */}
-      <div className="space-y-8">
-        {/* Source Language Pairs */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">
-            Translations from {sourceLang}
-          </h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Target Language
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    chrF++ Score
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    BLEU Score
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {pairs.filter(p => p.role === 'Source').map((pair, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.target_language}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.chrf_score?.toFixed(2) || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.bleu_score?.toFixed(2) || 'N/A'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* Target Language Pairs */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">
-            Translations to {sourceLang}
-          </h2>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Source Language
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    chrF++ Score
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    BLEU Score
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {pairs.filter(p => p.role === 'Target').map((pair, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.source_language}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.chrf_score?.toFixed(2) || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pair.bleu_score?.toFixed(2) || 'N/A'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      {/* Translation Pairs Table */}
+      <div className="bg-white p-6 rounded-lg shadow overflow-x-auto">
+        <h3 className="text-lg font-semibold mb-4">Translation Pair Details</h3>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                chrF++ Score
+              </th>
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                BLEU Score
+              </th>
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Source Language
+              </th>
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Target Language
+              </th>
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Role
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {pairs.map((pair, index) => (
+              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatScore(pair.chrf_score)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {formatScore(pair.bleu_score)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {pair.source_language}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {pair.target_language}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {pair.role}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
