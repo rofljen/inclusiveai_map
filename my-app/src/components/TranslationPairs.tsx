@@ -1,6 +1,6 @@
 "use client";
 
-import { TranslationPair } from "@/data/translationPairs";
+import { TranslationPair } from "@/types";
 import {
   BarChart,
   Bar,
@@ -12,20 +12,53 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Default sample data
+const defaultPairs: TranslationPair[] = [
+  {
+    source_language: "English",
+    target_language: "French",
+    chrf_score: 0.65,
+    bleu_score: 0.72,
+    role: "Source"
+  },
+  {
+    source_language: "English",
+    target_language: "Spanish",
+    chrf_score: 0.68,
+    bleu_score: 0.75,
+    role: "Source"
+  },
+  {
+    source_language: "German",
+    target_language: "English",
+    chrf_score: 0.62,
+    bleu_score: 0.70,
+    role: "Target"
+  },
+  {
+    source_language: "French",
+    target_language: "English",
+    chrf_score: 0.64,
+    bleu_score: 0.71,
+    role: "Target"
+  }
+];
+
 interface TranslationPairsProps {
-  pairs: TranslationPair[];
+  pairs?: TranslationPair[];
+  sourceLang?: string;
 }
 
-export default function TranslationPairs({ pairs }: TranslationPairsProps) {
+export default function TranslationPairs({ pairs = defaultPairs, sourceLang = "English" }: TranslationPairsProps) {
   // Calculate averages
   const avgChrfScore =
-    pairs.reduce((sum, pair) => sum + pair.chrf_score, 0) / pairs.length;
+    pairs.reduce((sum, pair) => sum + (pair.chrf_score || 0), 0) / pairs.length;
   const avgBleuScore =
-    pairs.reduce((sum, pair) => sum + pair.bleu_score, 0) / pairs.length;
+    pairs.reduce((sum, pair) => sum + (pair.bleu_score || 0), 0) / pairs.length;
 
   // Prepare data for the chart
   const chartData = pairs.map((pair) => ({
-    name: pair.target_language,
+    name: pair.role === 'Source' ? pair.target_language : pair.source_language,
     chrf_score: pair.chrf_score,
     bleu_score: pair.bleu_score,
   }));
@@ -55,7 +88,7 @@ export default function TranslationPairs({ pairs }: TranslationPairsProps) {
       {/* Score Distribution Chart */}
       <div className="bg-white p-4 rounded-lg shadow">
         <h3 className="text-lg font-semibold mb-4">
-          Translation Quality Scores by Target Language
+          Translation Quality Scores by Language
         </h3>
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -78,51 +111,85 @@ export default function TranslationPairs({ pairs }: TranslationPairsProps) {
         </div>
       </div>
 
-      {/* Translation Pairs Table */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-4">Translation Pair Details</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                  chrF++ Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                  BLEU Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                  Source Language
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                  Target Language
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                  Role
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {pairs.map((pair) => (
-                <tr key={pair.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {pair.chrf_score.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {pair.bleu_score.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {pair.source_language}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {pair.target_language}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-black">{pair.role}</td>
+      {/* Translation Pairs Tables */}
+      <div className="space-y-8">
+        {/* Source Language Pairs */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">
+            Translations from {sourceLang}
+          </h2>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Target Language
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    chrF++ Score
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    BLEU Score
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pairs.filter(p => p.role === 'Source').map((pair, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.target_language}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.chrf_score?.toFixed(2) || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.bleu_score?.toFixed(2) || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Target Language Pairs */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">
+            Translations to {sourceLang}
+          </h2>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Source Language
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    chrF++ Score
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    BLEU Score
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pairs.filter(p => p.role === 'Target').map((pair, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.source_language}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.chrf_score?.toFixed(2) || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {pair.bleu_score?.toFixed(2) || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );

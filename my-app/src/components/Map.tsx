@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { LanguageData } from '@/types';
+import { useRouter } from 'next/navigation';
 
 const MODEL_COLORS = {
   ASR: '#FF4B4B',
@@ -18,6 +19,7 @@ interface MapProps {
 
 export default function Map({ languages, selectedModels }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -61,7 +63,7 @@ export default function Map({ languages, selectedModels }: MapProps) {
         iconSize: [24, 24]
       });
 
-      // Create popup content
+      // Create popup content with View Details button
       const popupContent = `
         <div class="min-w-[200px] p-4">
           <h3 class="text-lg font-semibold mb-2">${language.name}</h3>
@@ -74,7 +76,13 @@ export default function Map({ languages, selectedModels }: MapProps) {
               `).join('')}
             </div>
           ` : ''}
-          <p><strong>NMT Pairs:</strong> ${language.nmt_pair_count || 0}</p>
+          <p class="mb-4"><strong>NMT Pairs:</strong> ${language.nmt_pair_count || 0}</p>
+          <button
+            class="view-details-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm w-full transition-colors"
+            data-language-id="${language.id}"
+          >
+            View Details
+          </button>
         </div>
       `;
 
@@ -82,6 +90,16 @@ export default function Map({ languages, selectedModels }: MapProps) {
       const marker = L.marker([language.latitude, language.longitude], { icon })
         .bindPopup(popupContent)
         .addTo(mapRef.current!);
+
+      // Add click handler for View Details button
+      marker.on('popupopen', () => {
+        const btn = document.querySelector(`button[data-language-id="${language.id}"]`);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            router.push(`/language/${language.id}`);
+          });
+        }
+      });
 
       // If language has NMT pairs and connected languages, draw connections
       if (language.connected_languages && language.connected_coords) {
@@ -126,7 +144,7 @@ export default function Map({ languages, selectedModels }: MapProps) {
         mapRef.current = null;
       }
     };
-  }, [languages, selectedModels]);
+  }, [languages, selectedModels, router]);
 
   return <div id="map" className="w-full h-full" />;
 }
