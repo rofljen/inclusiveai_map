@@ -5,52 +5,17 @@ A Streamlit-based web application for visualizing language model data with Postg
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-  - [Option 1: Running with Docker (Recommended)](#option-1-running-with-docker-recommended)
-  - [Option 2: Running Locally](#option-2-running-locally)
 - [Database Setup](#database-setup)
-- [Environment Variables](#environment-variables)
+- [Environment Setup](#environment-setup)
 - [Running the Application](#running-the-application)
 - [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
-
-### For Docker Setup
-- Docker
-- Docker Compose
-
-### For Local Setup
 - Python 3.12.8
 - PostgreSQL 16 with PostGIS extension
 - pip (Python package manager)
 
 ## Installation
-
-### Option 1: Running with Docker (Recommended)
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd inclusiveai_map
-   ```
-
-2. Create a `.env` file in the root directory:
-   ```bash
-   PGUSER=postgres
-   PGPASSWORD=password123
-   PGHOST=db
-   PGPORT=5432
-   PGDATABASE=inclusiveai_map
-   DATABASE_URL=postgresql://postgres:password123@db:5432/inclusiveai_map
-   ```
-
-3. Build and start the containers:
-   ```bash
-   docker compose up --build
-   ```
-
-4. The application will be available at http://localhost:8000
-
-### Option 2: Running Locally
 
 1. Clone the repository:
    ```bash
@@ -71,10 +36,7 @@ A Streamlit-based web application for visualizing language model data with Postg
 
 ## Database Setup
 
-### For Docker Setup
-The database will be automatically created and configured when you run `docker compose up`.
-
-### For Local Setup
+## Database Setup
 
 1. Make sure PostgreSQL is running:
    ```bash
@@ -92,13 +54,20 @@ The database will be automatically created and configured when you run `docker c
    psql -d inclusiveai_map -f data/xri_backup123124.sql
    ```
 
-## Environment Variables
+## Environment Setup
 
-### For Local Setup
-Set the following environment variables:
+Before running the application, you need to set up the environment variables in your terminal. Run the following commands:
+
 ```bash
-export PGUSER=your_username
+export PGUSER=suvrkamaldas
+export PGPASSWORD=password123
 export PGHOST=localhost
+export PGPORT=5432
+export PGDATABASE=inclusiveai_map
+export DATABASE_URL=postgresql://suvrkamaldas:password123@localhost:5432/inclusiveai_map
+```
+
+**Note**: These environment variables must be set in your terminal before starting the application. They need to be set every time you open a new terminal session.
 export PGPORT=5432
 export PGDATABASE=inclusiveai_map
 export DATABASE_URL=postgresql://your_username@localhost:5432/inclusiveai_map
@@ -108,17 +77,19 @@ Replace `your_username` with your PostgreSQL username.
 
 ## Running the Application
 
-### With Docker
-```bash
-docker compose up
-```
-
-### Locally
 ```bash
 streamlit run main.py --server.port 8000
 ```
 
-The application will be available at http://localhost:8000
+The application will be available at http://localhost:8501
+
+```
+
+(venv) suvrkamaldas@Subhros-MacBook-Air inclusiveai_map % export PGUSER=suvrkamaldas PGPASSWORD=password123 PGHOST=localhost PGPORT=5432 PGDATABASE=inclusiveai_map DATABASE_URL=postgresql://suvrkamaldas:password123@localhost:5432/inclusiveai_map
+(venv) suvrkamaldas@Subhros-MacBook-Air inclusiveai_map % streamlit run main.py --server.port 8501
+
+```
+
 
 ## Troubleshooting
 
@@ -137,13 +108,6 @@ The application will be available at http://localhost:8000
    - Check environment variables are set correctly
    - Ensure PostGIS extension is installed
 
-3. **Docker Issues**
-   ```bash
-   # Stop all containers and remove volumes
-   docker compose down -v
-   # Rebuild from scratch
-   docker compose up --build
-   ```
 
 ### PostgreSQL Commands
 

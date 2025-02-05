@@ -12,6 +12,7 @@ export interface LanguageData {
   connected_coords?: number[][] | string;
   family_name?: string;
   subfamily_name?: string;
+  glotto_code?: string;
 }
 
 export interface TranslationPair {

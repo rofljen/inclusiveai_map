@@ -3,7 +3,7 @@ import postgres from 'postgres';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const sql = postgres({
@@ -14,7 +14,8 @@ export async function GET(
       password: process.env.PGPASSWORD,
     });
 
-    const languageId = parseInt(params.id);
+    const { id } = await params;
+    const languageId = parseInt(id);
     if (isNaN(languageId)) {
       return NextResponse.json(
         { error: 'Invalid language ID' },

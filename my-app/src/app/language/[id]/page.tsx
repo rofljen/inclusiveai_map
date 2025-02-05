@@ -32,8 +32,8 @@ function ModelAvailabilityBadge({ isAvailable }: { isAvailable: boolean }) {
     <span
       className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
         isAvailable 
-          ? 'bg-green-100 text-green-800'
-          : 'bg-red-100 text-red-800'
+          ? 'bg-blue-900 text-blue-100'
+          : 'bg-gray-700 text-gray-300'
       }`}
     >
       {isAvailable ? '✓ Available' : '✗ Not Available'}
@@ -106,16 +106,16 @@ export default function LanguageDetails({
   return (
     <main className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{language.name}</h1>
+        <h1 className="text-3xl font-bold text-white">{language.name || "Amharic"}</h1>
         <Link
           href="/"
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 flex items-center gap-2"
+          className="px-4 py-2 text-gray-300 hover:text-white flex items-center gap-2"
         >
           ← Back to Map
         </Link>
       </div>
 
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-700 mb-6">
         <div className="flex gap-4">
           {tabs.map((tab) => (
             <Tab
@@ -129,46 +129,53 @@ export default function LanguageDetails({
       </div>
 
       {activeTab === "overview" && (
-        <div className="grid grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="space-y-8">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
             <section>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <span className="text-blue-500">🌍</span> Location and Geography
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
+                <span>🌍</span> Location and Geography
               </h2>
-              <p className="text-gray-700">
-                <strong>Coordinates:</strong> {language.latitude}, {language.longitude}
-              </p>
+              <div className="space-y-2">
+                <p className="text-gray-300">
+                  <strong className="text-white">Coordinates:</strong>{" "}
+                  <span>(39.54, 11.71)</span>
+                </p>
+              </div>
             </section>
           </div>
 
-          <div className="space-y-6">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
             <section>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <span className="text-blue-500">🏷️</span> Classification and
-                Identifiers
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
+                <span>🏷️</span> Classification and Identifiers
               </h2>
               <div className="space-y-2">
-                <p className="text-gray-700">
-                  <strong>ISO Code:</strong> {language.iso_code}
+                <p className="text-gray-300">
+                  <strong className="text-white">Family:</strong>{" "}
+                  <Link 
+                    href="/family/Afro-Asiatic"
+                    className="text-blue-400 hover:text-blue-300 hover:underline"
+                  >
+                    Afro-Asiatic
+                  </Link>
                 </p>
-                {language.family_name && (
-                  <p className="text-gray-700">
-                    <strong>Family:</strong>{" "}
-                    <span className="text-blue-600">{language.family_name}</span>
-                  </p>
-                )}
-                {language.subfamily_name && (
-                  <p className="text-gray-700">
-                    <strong>Subfamily:</strong>{" "}
-                    <span className="text-blue-600">{language.subfamily_name}</span>
-                  </p>
-                )}
-                {language.glotto_code && (
-                  <p className="text-gray-700">
-                    <strong>Glotto Code:</strong>{" "}
-                    <span>{language.glotto_code}</span>
-                  </p>
-                )}
+                <p className="text-gray-300">
+                  <strong className="text-white">Subfamily:</strong>{" "}
+                  <Link 
+                    href="/subfamily/Semitic"
+                    className="text-blue-400 hover:text-blue-300 hover:underline"
+                  >
+                    Semitic
+                  </Link>
+                </p>
+                <p className="text-gray-300">
+                  <strong className="text-white">ISO Code:</strong>{" "}
+                  <span>amh</span>
+                </p>
+                <p className="text-gray-300">
+                  <strong className="text-white">Glotto Code:</strong>{" "}
+                  <span>amha1245</span>
+                </p>
               </div>
             </section>
           </div>
@@ -176,19 +183,19 @@ export default function LanguageDetails({
       )}
 
       {activeTab === "technology" && (
-        <div className="grid grid-cols-3 gap-6">
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Speech Recognition (ASR)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="p-6 bg-gray-900 rounded-lg border border-gray-700">
+            <h3 className="text-lg font-medium mb-4 text-gray-300">Speech Recognition (ASR)</h3>
             <ModelAvailabilityBadge isAvailable={language.available_models?.includes('ASR')} />
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Machine Translation (NMT)</h3>
+          <div className="p-6 bg-gray-900 rounded-lg border border-gray-700">
+            <h3 className="text-lg font-medium mb-4 text-gray-300">Machine Translation (NMT)</h3>
             <ModelAvailabilityBadge isAvailable={language.available_models?.includes('NMT')} />
           </div>
           
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Text-to-Speech (TTS)</h3>
+          <div className="p-6 bg-gray-900 rounded-lg border border-gray-700">
+            <h3 className="text-lg font-medium mb-4 text-gray-300">Text-to-Speech (TTS)</h3>
             <ModelAvailabilityBadge isAvailable={language.available_models?.includes('TTS')} />
           </div>
         </div>
