@@ -19,27 +19,27 @@ export async function GET(
 
     const result = await sql`
       SELECT 
-        id,
-        lang_name as name,
-        iso_639_3_code as iso_code,
-        latitude,
-        longitude,
-        family_name,
-        subfamily_name,
-        glotto_code,
-        ARRAY(
-          SELECT DISTINCT model_type::text
-          FROM language_models
-          WHERE language_id = language_new.id
-        ) as available_models,
+        ln.id,
+        ln.lang_name as name,
+        ST_Y(ln.coordinates::geometry) as latitude,
+        ST_X(ln.coordinates::geometry) as longitude,
+        lf.name as family_name,
+        ls.name as subfamily_name,
+        array_remove(ARRAY[
+          CASE WHEN ln.asr THEN 'ASR' ELSE NULL END,
+          CASE WHEN ln.nmt THEN 'NMT' ELSE NULL END,
+          CASE WHEN ln.tts THEN 'TTS' ELSE NULL END
+        ], NULL) as available_models,
         (
           SELECT COUNT(*)
           FROM nmt_pairs_source nps
-          WHERE source_lang_id = language_new.id OR target_lang_id = language_new.id
+          WHERE source_lang_id = ln.id OR target_lang_id = ln.id
         ) as nmt_pair_count
-      FROM language_new
-      WHERE subfamily_name = ${decodedName}
-      ORDER BY lang_name ASC;
+      FROM language_new ln
+      LEFT JOIN language_family lf ON ln.lang_fam_id = lf.id
+      LEFT JOIN language_subfamily ls ON ln.lang_sub_id = ls.id
+      WHERE ls.id = ${parseInt(decodedName)}
+      ORDER BY ln.lang_name ASC;
     `;
 
     await sql.end();
