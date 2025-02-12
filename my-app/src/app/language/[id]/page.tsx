@@ -57,12 +57,12 @@ export default function LanguageDetails({
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`/api/languages?id=${resolvedParams.id}`);
+        const response = await fetch(`/api/languages/${resolvedParams.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch language details');
         }
         const data = await response.json();
-        setLanguage(data[0]);
+        setLanguage(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -129,55 +129,63 @@ export default function LanguageDetails({
       </div>
 
       {activeTab === "overview" && (
-        <div className="space-y-8">
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-            <section>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
-                <span>🌍</span> Location and Geography
-              </h2>
-              <div className="space-y-2">
-                <p className="text-gray-300">
-                  <strong className="text-white">Coordinates:</strong>{" "}
-                  <span>(39.54, 11.71)</span>
-                </p>
-              </div>
-            </section>
+        <div className="grid grid-cols-1 gap-6">
+          {/* Location Card */}
+          <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6 border border-gray-800">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-gray-400">🌍</span>
+              <h3 className="text-gray-400 text-sm font-medium">Location and Geography</h3>
+            </div>
+            {language.latitude && language.longitude && (
+              <p className="text-gray-300 text-sm">
+                <span className="text-gray-400">Coordinates:</span>{" "}
+                <span>({language.latitude.toFixed(2)}, {language.longitude.toFixed(2)})</span>
+              </p>
+            )}
           </div>
 
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-            <section>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
-                <span>🏷️</span> Classification and Identifiers
-              </h2>
-              <div className="space-y-2">
-                <p className="text-gray-300">
-                  <strong className="text-white">Family:</strong>{" "}
+          {/* Classification Card */}
+          <div className="bg-gray-900/50 backdrop-blur-sm rounded-lg p-6 border border-gray-800">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-gray-400">🏷️</span>
+              <h3 className="text-gray-400 text-sm font-medium">Classification and Identifiers</h3>
+            </div>
+            <div className="space-y-2">
+              {language.family_name && (
+                <p className="text-gray-300 text-sm">
+                  <span className="text-gray-400">Family:</span>{" "}
                   <Link 
-                    href="/family/Afro-Asiatic"
+                    href={`/family/${language.family_id}`}
                     className="text-blue-400 hover:text-blue-300 hover:underline"
                   >
-                    Afro-Asiatic
+                    {language.family_name}
                   </Link>
                 </p>
-                <p className="text-gray-300">
-                  <strong className="text-white">Subfamily:</strong>{" "}
+              )}
+              {language.subfamily_name && (
+                <p className="text-gray-300 text-sm">
+                  <span className="text-gray-400">Subfamily:</span>{" "}
                   <Link 
-                    href="/subfamily/Semitic"
+                    href={`/subfamily/${language.subfamily_id}`}
                     className="text-blue-400 hover:text-blue-300 hover:underline"
                   >
-                    Semitic
+                    {language.subfamily_name}
                   </Link>
                 </p>
-                <p className="text-gray-300">
-                  <strong className="text-white">ISO Code:</strong>{" "}
-                  <span>amh</span>
+              )}
+              {language.iso_code && (
+                <p className="text-gray-300 text-sm">
+                  <span className="text-gray-400">ISO Code:</span>{" "}
+                  <span>{language.iso_code}</span>
                 </p>
-                <p className="text-gray-300">
-                  <strong className="text-white">Glotto Code:</strong>{" "}
-                  <span>amha1245</span>
+              )}
+              {language.glottocode && (
+                <p className="text-gray-300 text-sm">
+                  <span className="text-gray-400">Glotto Code:</span>{" "}
+                  <span>{language.glottocode}</span>
                 </p>
-              </div>
-            </section>
+              )}
+            </div>
           </div>
         </div>
       )}

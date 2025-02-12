@@ -11,8 +11,16 @@ export interface LanguageData {
   connected_languages?: string[] | string;
   connected_coords?: number[][] | string;
   family_name?: string;
+  family_id?: number;
   subfamily_name?: string;
-  glotto_code?: string;
+  subfamily_id?: number;
+  glottocode?: string;
+  asr?: boolean;
+  nmt?: boolean;
+  tts?: boolean;
+  asr_url?: string;
+  nmt_url?: string;
+  tts_url?: string;
 }
 
 export interface TranslationPair {
