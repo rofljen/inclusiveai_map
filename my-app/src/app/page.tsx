@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Stats } from "@/components/Stats";
 import { ModelFilters } from "@/components/ModelFilters";
+import { BridgingProgressBar } from "@/components/BridgingProgressBar";
 import { LanguageData } from "@/types";
 
 const Map = dynamic(() => import("@/components/Map"), {
@@ -12,6 +13,7 @@ const Map = dynamic(() => import("@/components/Map"), {
 
 export default function Home() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [activeProgressTab, setActiveProgressTab] = useState<'languages' | 'population'>('languages');
   const [languages, setLanguages] = useState<LanguageData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +55,13 @@ export default function Home() {
 
   return (
     <main className="p-4">
-      <div className="container mx-auto">
+      <div className="container mx-auto space-y-8">
         <Stats {...stats} />
+        <BridgingProgressBar
+          progress={46}
+          activeTab={activeProgressTab}
+          onTabChange={setActiveProgressTab}
+        />
         <div className="grid grid-cols-4 gap-4">
           <div className="space-y-4">
             <ModelFilters onFilterChange={setSelectedModels} />
